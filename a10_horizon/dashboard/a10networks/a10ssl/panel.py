@@ -15,7 +15,7 @@ import logging
 
 import horizon
 
-from a10_horizon.dashboard.a10networks.panel_base import NeutronExtensionPanelBase
+from a10_horizon.dashboard.panel_base import NeutronExtensionPanelBase
 
 LOG = logging.getLogger(__name__)
 
