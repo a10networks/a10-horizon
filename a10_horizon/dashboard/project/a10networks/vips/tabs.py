@@ -33,8 +33,83 @@ except ImportError as ex:
 import tables as p_tables
 # import a10_horizon.dashboard.api.vips as a10api
 
+# move to template constants
 TABLE_TEMPLATE = "horizon/common/_detail_table.html"
 DEFAULT_TEMPLATE = "horizon/common/_detail.html"
+
+
+class ProjectHealthMonitorTab(tabs.TableTab):
+    table_classes = (p_tables.ProjectHealthMonitorTable, )
+    name = _("Health Monitors")
+    slug = "a10healthmonitorstab"
+    template_name = TABLE_TEMPLATE
+    preload = False
+
+    def get_projecthealthmonitortable_data(self):
+        rv = []
+
+        try:
+            rv = lbaasv2_api.healthmonitor_list(self.request)
+        except Exception as ex:
+            LOG.exception(ex)
+            exceptions.handle(self.request, _("Unable to retrieve health monitor server list"))
+        return rv
+
+
+class ProjectPoolTab(tabs.TableTab):
+    table_classes = (p_tables.ProjectPoolTable,)
+    name = _("Pools")
+    slug = "a10poolstab"
+    template_name = TABLE_TEMPLATE
+    preload = False
+
+    def get_projectpooltable_data(self):
+        rv = []
+
+        try:
+            rv = lbaasv2_api.pool_list(self.request)
+        except Exception as ex:
+            LOG.exception(ex)
+            exceptions.handle(self.tab_group.request,
+                              _("Unable to retrieve LB pool list."))
+        return rv
+
+
+class ProjectListenerTab(tabs.TableTab):
+    table_classes = (p_tables.ProjectListenerTable,)
+    name = _("Listeners")
+    slug = "a10listenerstab"
+    template_name = TABLE_TEMPLATE
+    preload = False
+
+    def get_projectlistenertable_data(self):
+        rv = []
+
+        try:
+            rv = lbaasv2_api.list_listeners(self.request)
+        except Exception as ex:
+            LOG.exception(ex)
+            exceptions.handle(self.tab_group.request,
+                              _('Unable to retrieve listener list.'))
+        return rv
+
+
+class ProjectLoadbalancerTab(tabs.TableTab):
+    table_classes = (p_tables.ProjectLoadbalancerTable,)
+    name = _("Load Balancers")
+    slug = "a10loadbalancerstab"
+    template_name = TABLE_TEMPLATE
+    preload = False
+
+    def get_projectloadbalancertable_data(self):
+        rv = []
+        try:
+            rv = lbaasv2_api.list_loadbalancers(self.request)
+        except Exception as ex:
+            LOG.exception(ex)
+            exceptions.handle(self.tab_group.request,
+                              _('Unable to retrieve load balancer list.'))
+        return rv
 
 
 class VipsTab(tabs.TableTab):
@@ -81,8 +156,48 @@ class VipsTab(tabs.TableTab):
         return rv
 
 
-class VipTabs(tabs.TabGroup):
+class A10LBTabs(tabs.TabGroup):
     slug = "a10tabs"
-    tabs = (VipsTab, )
+
+    tabs = (VipsTab,
+            ProjectLoadbalancerTab,
+            ProjectListenerTab,
+            ProjectPoolTab,
+            ProjectHealthMonitorTab,)
+
+    sticky = False
+    show_single_tab = True
+
+class MonitorDetailsTabs(tabs.TabGroup):
+    slug = "a10monitordetailstabs"
+    tabs = ()
+    stick = False
+    show_single_tab = True
+
+
+class MemberDetailsTabs(tabs.TabGroup):
+    slug = "a10memberdetailstabs"
+    tabs = ()
+    stick = False
+    show_single_tab = True
+
+
+class PoolDetailsTabs(tabs.TabGroup):
+    slug = "a10pooldetailstabs"
+    tabs = ()
+    stick = False
+    show_single_tab = True
+
+
+class ListenerDetailsTabs(tabs.TabGroup):
+    slug = "a10listenerdetailstabs"
+    tabs = ()
+    sticky = False
+    show_single_tab = True
+
+
+class LBDetailsTabs(tabs.TabGroup):
+    slug = "a10lbdetailstabs"
+    tabs = ()
     sticky = False
     show_single_tab = True

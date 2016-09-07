@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}{% endblock %}
+
+{% block main %}
+<div class="row">
+  <div class="col-sm-12">
+    {% include "lb/_detail.html" %}
+    <hr />
+    <h3>
+        Listeners
+    </h3>
+    <div id="lblistenertable">
+      {{ listenertable_table.render }}
+    </div>
+  </div>
+</div>
+{% endblock %}

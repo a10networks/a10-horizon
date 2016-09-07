@@ -1,4 +1,4 @@
-# Copyright 2014-2016,  A10 Networks
+# Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -12,12 +12,3 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from a10_horizon.dashboard.panel_base import NeutronExtensionPanelBase
-
-
-class A10VipPanel(NeutronExtensionPanelBase):
-    # REQUIRED_EXTENSIOSN = ["a10-scaling-groups"]
-
-    name = "Load Balancers"
-    slug = "a10vips"
-    permissions = ('openstack.services.network',)

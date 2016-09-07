@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Listener Details" %}{% endblock %}
+
+{% block main %}
+<div class="row">
+  <div class="col-sm-12">
+    {% include 'lb/listeners/_detail.html' %}
+    <hr />
+    <h3>
+        Default Pool
+    </h3>
+    <div id="listenerpooltable">
+      {{ pooltable_table.render }}
+    </div>
+    <h3>
+        Parent Loadbalancers
+    </h3>
+    <div id="listenerlbtable">
+      {{ loadbalancertable_table.render }}
+    </div>
+  </div>
+</div>
+  
+{% endblock %}

@@ -65,3 +65,6 @@ target/
 
 # vi temp swap files
 *.swp
+
+# Sublime Text workspace
+*.sublime[-_]workspace

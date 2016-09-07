@@ -1,4 +1,4 @@
-# Copyright (C) 2014-2015, A10 Networks Inc. All rights reserved.
+# Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -24,14 +24,25 @@ from horizon import tables
 LOG = logging.getLogger(__name__)
 
 # lbaasv2 api
+# TODO(mdurrant) - move API import into a module on it's own
+#                  and hijack module __init__ to switch out lbaas apis
+#                  dependent on the loaded neutron extensions.
+
 try:
     from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
 except ImportError as ex:
     LOG.exception(ex)
     LOG.error("Could not import lbaasv2 dashboard API")
 
+import base_table as base
+import links
+
 
 URL_PREFIX = "horizon:project:a10vips:"
+SUCCESS_URL = URL_PREFIX + "index"
+
+def name_link(datum):
+    return reverse_lazy("")
 
 
 class CreateVipLink(tables.LinkAction):
@@ -41,7 +52,59 @@ class CreateVipLink(tables.LinkAction):
     classes = ("ajax-modal",)
     icon = "plus"
     policy_rules = ("network",)  # FIXME(mdurrant) - A10-specific policies?
-    success_url = "horizon:project:a10vips:index"
+    success_url = SUCCESS_URL
+
+
+class CreateLoadBalancerLink(tables.LinkAction):
+    name = "createloadbalancer"
+    verbose_name = _("Create Load Balancer")
+    url = URL_PREFIX + "createlb"
+    classes = ("ajax-modal", )
+    icon = "plus"
+    policy_rules = ("network",)
+    success_url = SUCCESS_URL
+
+
+class CreateListenerLink(tables.LinkAction):
+    name = "createlistener"
+    verbose_name = _("Create Listener")
+    url = URL_PREFIX + "createlistener"
+    classes = ("ajax-modal", )
+    icon = "plus"
+    policy_rules = ("network", )
+    success_url = SUCCESS_URL
+
+
+class CreatePoolLink(tables.LinkAction):
+    name = "createpool"
+    verbose_name = _("Create Pool")
+    url = URL_PREFIX + "createpool"
+    classes = ("ajax-modal", )
+    icon = "plus"
+    policy_rules = ("network", )
+    success_url = SUCCESS_URL
+
+
+class CreateMemberLink(tables.LinkAction):
+    name = "createmember"
+    verbose_name = _("Add Member")
+    url = URL_PREFIX + "createmember"
+    classes = ("ajax-modal",)
+    icon = "plus"
+    policy_rules = ("network", )
+    success_url = SUCCESS_URL
+
+    def get_link_url(self, datum):
+        return reverse_lazy(URL_PREFIX + "createmember", kwargs={'pool_id': datum["id"]})
+
+
+class CreateHealthMonitorLink(tables.LinkAction):
+    name = "createhealthmonitor"
+    verbose_name = _("Create Health Monitor")
+    url = reverse_lazy(URL_PREFIX + "createmonitor")
+    classes = ("ajax-modal",)
+    icon = "plus"
+    policy_rules = ("network", )
 
 
 class DeleteVipAction(tables.DeleteAction):
@@ -66,8 +129,155 @@ class DeleteVipAction(tables.DeleteAction):
             count
         )
 
+    def delete(self, request, obj_id):
+        import pdb; pdb.set_trace()
+        return False
+
     def allowed(self, request, obj):
         return True
+
+
+class DeleteLoadBalancerAction(tables.DeleteAction):
+    name = "deletelb"
+    verbose_name = _("Delete Load Balancer")
+    redirect_url = reverse_lazy(URL_PREFIX + "index")
+    failure_message = _('Failed to delete Load Balancer')
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Delete Load Balancer",
+            u"Delete Load Balancers",
+            count)
+
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Scheduled Deletion of Load Balancer",
+            u"Scheduled Deletion of Load Balancers",
+            count)
+
+    def allowed(self, request, obj):
+        if obj:
+            return len(obj.get("listeners", [])) == 0
+        else:
+            return True
+
+
+class DeleteListenerAction(tables.DeleteAction):
+    name = "deletelistener"
+    verbose_name = _("Delete Listener")
+    redirect_url = reverse_lazy(URL_PREFIX + "index")
+    failure_message = _("Failed to delete Listener")
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Delete Listener",
+            u"Delete Listeners",
+            count)
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Scheduled Deletion of Listener",
+            u"Scheduled Deletion of Listeners",
+            count)
+
+    def allowed(self, request, obj):
+        if obj:
+            return obj.get("default_pool_id") is None
+        return True
+
+
+class DeletePoolAction(tables.DeleteAction):
+    name = "deletepool"
+    verbose_name = _("Delete Pool")
+    redirect_url = reverse_lazy(URL_PREFIX + "index")
+    failure_message = _("Failed to delete Pool")
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Delete Pool",
+            u"Delete Pools",
+            count)
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Scheduled Deletion of Pool",
+            u"Scheduled Deletion of Pools",
+            count)
+
+    def allowed(self, request, obj):
+        import pdb; pdb.set_trace()
+        if obj:
+            return len(obj.get("members")) == 0 and not obj.get("healthmonitor_id")
+        return True
+
+    def action(self, request, obj_id):
+        import pdb; pdb.set_trace()
+        return False
+
+    def delete(self, request, obj_id):
+        import pdb; pdb.set_trace()
+        return False
+
+
+class DeleteMemberAction(tables.DeleteAction):
+    name = "deletemember"
+    verbose_name = _("Delete Member")
+    success_url = reverse_lazy(URL_PREFIX + "index")
+    failure_message = _("Failed to delete Member")
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Delete Member",
+            u"Delete Members",
+            count)
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Scheduled Deletion of Member",
+            u"Scheduled Deletion of Members",
+            count)
+
+    def allowed(self, request, obj):
+        return obj is not None
+
+
+class DeleteHealthMonitorAction(tables.DeleteAction):
+    name = "deletehealthmonitor"
+    verbose_name = _("Delete Health Monitor")
+    redirect_url = reverse_lazy(URL_PREFIX + "index")
+    failure_message = _("Failed to delete Health Monitor")
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Delete Health Monitor",
+            u"Delete Health Monitors",
+            count)
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Scheduled Deletion of Health Monitor",
+            u"Scheduled Deletion of Health Monitors",
+            count)
+
+    def allowed(self, request, obj):
+        # table check
+        if not obj:
+            # rows = self.table.get_rows()
+            # allowable = [x for x in rows if x.get("")]
+            return True
+        # row check
+        return len(obj.get("pools", [])) == 0
 
 
 class MigrateVipAction(tables.LinkAction):
@@ -91,35 +301,81 @@ class TestVipAction(tables.Action):
         return True
 
     def allowed(self, request, obj):
+        # TODO(mdurrant) - We need an extension that performs this action.
         # Put in logic here for whether or not we can actually test something.
         # This will allow is to do simple TCP tests in the beginning and slowly expand our wheelhouse.
         return True
 
 
-class EditVipAction(tables.LinkAction):
-    name = "editvip"
-    verbose_name = _("Edit VIP")
-    url = URL_PREFIX + "edit"
+# class EditVipAction(tables.LinkAction):
+#     name = "editvip"
+#     verbose_name = _("Edit VIP")
+#     url = URL_PREFIX + "edit"
+#     classes = ("ajax-modal",)
+#     icon = "plus"
+#     policy_rules = ("network",)  # FIXME(mdurrant) - A10-specific policies?
+#     success_url = "horizon:project:a10vips:index"
+
+#     def get_link_url(self, datum):
+#         base_url = reverse(URL_PREFIX + "edit",
+#                            kwargs={'id': datum["id"]})
+#         return base_url
+
+
+class UpdateLoadBalancerAction(tables.LinkAction):
+    name = "editlb"
+    verbose_name = _("Edit Load Balancer")
+    url = URL_PREFIX + "editlb"
     classes = ("ajax-modal",)
     icon = "plus"
     policy_rules = ("network",)  # FIXME(mdurrant) - A10-specific policies?
     success_url = "horizon:project:a10vips:index"
 
     def get_link_url(self, datum):
-        base_url = reverse(URL_PREFIX + "edit",
+        base_url = reverse(URL_PREFIX + "editlb",
+                           kwargs={'id': datum["id"]})
+        return base_url
+
+
+class UpdateListenerAction(tables.LinkAction):
+    name = "editlistener"
+    verbose_name = _("Edit Listener")
+    url = URL_PREFIX + "editlistener"
+    classes = ("ajax-modal", )
+    icon = "plus"
+    policy_rules = ("network", )
+    success_url = "horizon:project:a10vips:index"
+
+    def get_link_url(self, datum):
+        base_url = reverse(URL_PREFIX + self.name,
+                           kwargs={'id': datum["id"]})
+        return base_url
+
+
+class UpdatePoolAction(tables.LinkAction):
+    name = "editpool"
+    verbose_name = _("Edit Pool")
+    url = URL_PREFIX + "editpool"
+    classes = ("ajax-modal", )
+    icon = "plus"
+    policy_rules = ("network", )
+    success_url = "horizon:project:a10vips:index"
+
+    def get_link_url(self, datum):
+        base_url = reverse(URL_PREFIX + self.name,
                            kwargs={'id': datum["id"]})
         return base_url
 
 
 class VipTable(tables.DataTable):
     id = tables.Column("id", verbose_name=_("ID"), hidden=True)
+    name = tables.Column("name", verbose_name=_("Name"), link=links.link_loadbalancer_detail_by_id)
     ip_address = tables.Column("vip_address", verbose_name=_("IP Address"))
     provision_status = tables.Column("provisioning_status",
                                      verbose_name=_("Provisioning Status"))
     provider = tables.Column("provider", verbose_name=_("Provider"))
     op_status = tables.Column("op_status",
                               verbose_name=_("Operating Status"))
-    name = tables.Column("name", verbose_name=_("Name"))
 
     def get_object_id(self, datum):
         return datum.get("id")
@@ -128,6 +384,54 @@ class VipTable(tables.DataTable):
         name = "viptable"
         verbose_name = "viptable"
         table_actions = (CreateVipLink, DeleteVipAction,)
-        row_actions = (EditVipAction,
-                       DeleteVipAction,
-                       TestVipAction)
+        row_actions = (DeleteVipAction, )
+
+
+class OverviewPoolTable(base.PoolTableBase):
+    class Meta(object):
+        name = "overviewpooltable"
+        verbose_name = "Pool Overview"
+        table_actions = tuple()
+        row_actions = tuple()
+
+
+class ProjectHealthMonitorTable(base.HealthMonitorTableBase):
+    class Meta(object):
+        name = "projecthealthmonitortable"
+        verbose_name = _("Health Monitors")
+        table_actions = (CreateHealthMonitorLink, DeleteHealthMonitorAction, )
+        row_actions = (DeleteHealthMonitorAction, )
+
+
+class ProjectMemberTable(base.MemberTableBase):
+    class Meta(object):
+        name = "projectmembertable"
+        verbose_name = _("Member Servers")
+        table_actions = (DeleteMemberAction,)
+        row_actions = (DeleteMemberAction,)
+
+
+class ProjectPoolTable(base.PoolTableBase):
+    class Meta(object):
+        name = "projectpooltable"
+        verbose_name = "Pools"
+        table_actions = (CreatePoolLink, DeletePoolAction, )
+        row_actions = (UpdatePoolAction, DeletePoolAction, CreateMemberLink, )
+
+
+class ProjectListenerTable(base.ListenerTableBase):
+    class Meta(object):
+        name = "projectlistenertable"
+        verbose_name = "Listeners"
+        table_actions = (CreateListenerLink, DeleteListenerAction,)
+        row_actions = (UpdateListenerAction, DeleteListenerAction,)
+
+
+class ProjectLoadbalancerTable(base.LoadbalancerTableBase):
+    class Meta(object):
+        name = "projectloadbalancertable"
+        verbose_name = "loadbalancers"
+        table_actions = (CreateLoadBalancerLink, DeleteLoadBalancerAction, )
+        row_actions = (UpdateLoadBalancerAction, DeleteLoadBalancerAction, )
+
+

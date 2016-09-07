@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Pool Details" %}{% endblock %}
+{% block form_action %}
+{% url 'horizon:project:a10vips:createmember' pool_id=pool_id %}
+{% endblock %}
+
+{% block main %}
+<div class="row">
+  <div class="col-sm-12">
+    {% include 'lb/pools/_detail.html' %}
+    <hr />
+    <h3>
+        Members
+    </h3>
+    <div id="membertable">
+      {{ projectmembertable_table.render }}
+    </div>
+
+    <h3>
+        Parent Listeners
+    </h3>
+    <div id="listenertable">
+      {{ listenertable_table.render }}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

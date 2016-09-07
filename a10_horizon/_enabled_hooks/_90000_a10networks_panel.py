@@ -13,7 +13,9 @@
 
 
 from django.utils.translation import ugettext_lazy as _
+
 from openstack_dashboard.local import local_settings
+
 import a10_horizon
 
 PANEL_GROUP = 'a10networks'

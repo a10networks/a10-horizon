@@ -21,11 +21,6 @@ from horizon import exceptions
 from horizon import forms
 from horizon import messages
 
-import forms as p_forms
-
-
-LOG = logging.getLogger(__name__)
-
 # from openstack_dashboard import api
 # lbaasv2 api
 try:
@@ -34,10 +29,17 @@ except ImportError as ex:
     LOG.exception(ex)
     LOG.warning("Could not import lbaasv2 dashboard API")
 
+from a10_horizon.dashboard.helpers import context_processors as from_ctx
 
-class EditVip(forms.SelfHandlingForm):
+import forms as p_forms
+import api_helpers
+
+LOG = logging.getLogger(__name__)
+
+
+class UpdateLoadBalancerForm(forms.SelfHandlingForm):
     def __init__(self, *args, **kwargs):
-        super(EditVip, self).__init__(*args, **kwargs)
+        super(UpdateLoadBalancerForm, self).__init__(*args, **kwargs)
         self.submit_url = kwargs.get("id")
 
     id = forms.CharField(label=_("ID"), widget=forms.TextInput(attrs={'readonly': 'readonly'}))
@@ -48,17 +50,160 @@ class EditVip(forms.SelfHandlingForm):
 
     failure_url = "horizon:project:a10vips:index"
     success_url = "horizon:project:a10vips:index"
-    # redirect_url = reverse_lazy('horizon:project:a10scaling:updatescalingpolicy')
 
     def handle(self, request, context):
         try:
-            policy = lbaasv2_api.vip_update(request, **context)
-            msg = _("VIP {0} was successfully updated").format(context["name"])
+            lb_id = context.get("id")
+            del context["id"]
+            body = {"loadbalancer": context}
+            lb = lbaasv2_api.update_loadbalancer(request, lb_id, **body)
+            msg = _("Load Balancer {0} was successfully updated").format(context["name"])
             messages.success(request, msg)
-            return policy
+            return lb
         except Exception as ex:
             msg = _("Failed to update VIP %s") % context["name"]
             LOG.exception(ex)
             redirect = reverse_lazy(self.failure_url)
             exceptions.handle(request, msg, redirect=redirect)
 
+
+class UpdateListenerForm(forms.SelfHandlingForm):
+    def __init__(self, *args, **kwargs):
+        super(UpdateListenerForm, self).__init__(*args, **kwargs)
+        self.submit_url = kwargs.get("id")
+
+    id = forms.CharField(label=_("ID"), widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
+                           required=True)
+    description = forms.CharField(label=_("Description"), min_length=1,
+                                  max_length=255, required=False)
+    connection_limit = forms.IntegerField(label=_("Connection Limit"))
+
+    failure_url = "horizon:project:a10vips:index"
+    success_url = "horizon:project:a10vips:index"
+
+    def handle(self, request, context):
+        try:
+            listener_id = context.get("id")
+            del context["id"]
+            body = {"listener": context}
+            lb = lbaasv2_api.update_listener(request, listener_id, **body)
+            msg = _("Listener {0} was successfully updated").format(context["name"])
+            messages.success(request, msg)
+            return lb
+        except Exception as ex:
+            msg = _("Failed to update Listener %s") % context["name"]
+            LOG.exception(ex)
+            redirect = reverse_lazy(self.failure_url)
+            exceptions.handle(request, msg, redirect=redirect)
+
+
+class UpdatePoolForm(forms.SelfHandlingForm):
+    id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
+                           required=True)
+    description = forms.CharField(label=_("Description"), min_length=1,
+                                  max_length=255, required=False)
+    lb_algorithm = forms.ChoiceField(label=_("LB Algorithm"), required=True)
+    session_persistence = forms.ChoiceField(label=_("Session Persistence"),
+                                            widget=forms.Select(
+                                                    attrs={
+                                                        "class": "switchable",
+                                                        "data-slug": "session_persistence"
+                                                    }),
+                                            required=True)
+    cookie_name = forms.CharField(label=_("Cookie Name"), min_length=1, max_length=255,
+                                  widget=forms.TextInput(
+                                    attrs={
+                                        "class": "switched",
+                                        "data-switch-on": "session_persistence",
+                                        "data-session_persistence-app_cookie": _("App Cookie Name")
+                                    }),
+
+                                  required=False)
+    admin_state_up = forms.BooleanField(label=_("Admin State"), required=False, initial=True)
+
+    failure_url = "horizon:project:a10vips:index"
+    success_url = "horizon:project:a10vips:index"
+
+    def __init__(self, request, *args, **kwargs):
+        initial = kwargs.get("initial", {})
+        sp_type = ""
+        sp_cookie = ""
+
+        if initial is not None:
+            sp_type = initial.get("session_persistence", "")
+            sp_cookie = initial.get("cookie_name", "")
+
+        super(UpdatePoolForm, self).__init__(request, *args, **kwargs)
+
+        self.fields["session_persistence"].choices = api_helpers.session_persistence_field_data(request, True)
+        self.fields["lb_algorithm"].choices = api_helpers.lb_algorithm_field_data(request, False)
+
+        self.fields["session_persistence"].initial = sp_type.lower()
+        self.fields["cookie_name"].initial = sp_cookie
+
+        self.submit_url = kwargs.get("id")
+
+
+    def handle(self, request, context):
+        try:
+            pool_id = context.get("id")
+            del context["id"]
+            body = self.body_from_context(context)
+            lb = lbaasv2_api.pool_update(request, pool_id, **body)
+            msg = _("Pool {0} was successfully updated").format(context["name"])
+            messages.success(request, msg)
+            return lb
+        except Exception as ex:
+            msg = _("Failed to update Pool %s") % context["name"]
+            LOG.exception(ex)
+            redirect = reverse_lazy(self.failure_url)
+            exceptions.handle(request, msg, redirect=redirect)
+
+    def body_from_context(self, context):
+        rv = {"pool": {
+            "name": context.get("name"),
+            "description": context.get("description"),
+            "lb_algorithm": context.get("lb_algorithm"),
+            "admin_state_up": context.get("admin_state_up")
+        }}
+        from_ctx.populate_session_persistence_from_context(context, rv)
+        return rv
+
+
+class UpdateMemberForm(forms.SelfHandlingForm):
+    id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    pool_id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    weight = forms.IntegerField(label=_("Weight"))
+    admin_state_up = forms.BooleanField(label=_("Admin State"), required=False, initial=True)
+
+    failure_url = "horizon:project:a10vips:index"
+    success_url = "horizon:project:a10vips:index"
+
+    def __init__(self, request, *args, **kwargs):
+        super(UpdateMemberForm, self).__init__(request, *args, **kwargs)
+
+    def handle(self, request, context):
+        try:
+            id = context["id"]
+            pool_id = context["pool"]
+            del context["id"]
+            del context["pool_id"]
+
+            body = self.body_from_context(context)
+            member = lbaasv2_api.member_update(request, pool_id, **body)
+            msg = _("Member {0} was successfully updated").format(context["name"])
+            messages.success(request, msg)
+            return member
+        except Exception as ex:
+            msg = _("Failed to update Member %s") % context["name"]
+            LOG.exception(ex)
+            redirect = reverse_lazy(self.failure_url)
+            exceptions.handle(request, msg, redirect=redirect)
+
+    def body_from_context(self, context):
+        return {"member": {
+            "name": context.get("name"),
+            "weight": context.get("weight"),
+        }}
