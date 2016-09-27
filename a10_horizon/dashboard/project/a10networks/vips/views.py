@@ -27,6 +27,8 @@ from horizon import tabs
 from horizon import views
 from horizon import workflows
 
+LOG = logging.getLogger(__name__)
+
 # lbaasv2 api
 try:
     from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
@@ -38,7 +40,6 @@ import forms as p_forms
 import tabs as p_tabs
 import workflows as p_workflows
 
-LOG = logging.getLogger(__name__)
 URL_PREFIX = "horizon:project:a10vips:"
 
 ACTION = "action"

@@ -21,6 +21,8 @@ from django.utils.translation import ungettext_lazy
 
 from horizon import tables
 
+LOG = logging.getLogger(__name__)
+
 # lbaasv2 api
 try:
     from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
@@ -29,7 +31,6 @@ except ImportError as ex:
     LOG.error("Could not import lbaasv2 dashboard API")
 
 
-LOG = logging.getLogger(__name__)
 URL_PREFIX = "horizon:project:a10vips:"
 
 

@@ -24,6 +24,8 @@ from horizon import messages
 import forms as p_forms
 
 
+LOG = logging.getLogger(__name__)
+
 # from openstack_dashboard import api
 # lbaasv2 api
 try:
