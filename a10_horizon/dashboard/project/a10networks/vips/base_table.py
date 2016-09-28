@@ -13,24 +13,15 @@
 #    under the License.
 
 
-import logging
-
-from django.core.urlresolvers import reverse
-from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import ungettext_lazy
-
 from horizon import tables
 
-# lbaasv2 api
-try:
-    from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
-except ImportError as ex:
-    LOG.exception(ex)
-    LOG.error("Could not import lbaasv2 dashboard API")
+import logging
 
-import links
+LOG = logging.getLogger(__name__)
+
 import display_transform
+import links
 
 
 class HealthMonitorTableBase(tables.DataTable):
@@ -45,10 +36,8 @@ class HealthMonitorTableBase(tables.DataTable):
     monitor_summary = tables.Column(display_transform.healthmonitor_summary,
                                     verbose_name=_("Monitor Summary"))
 
-
     def get_object_id(self, datum):
         return datum.get("id")
-
 
     class Meta(object):
         name = "healthmonitortable"
@@ -74,7 +63,6 @@ class MemberTableBase(tables.DataTable):
     def get_object_id(self, datum):
         return datum.get("id")
 
-
     class Meta(object):
         name = "membertable"
         verbose_name = "membertable"
@@ -95,7 +83,8 @@ class PoolTableBase(tables.DataTable):
                                    verbose_name=_("Admin State"))
     session_persistence = tables.Column(display_transform.transform_session_persistence,
                                         verbose_name=_("Session Persistence"))
-    health_monitor_id = tables.Column(display_transform.display_health_monitor, verbose_name=_("Health Monitor"),
+    health_monitor_id = tables.Column(display_transform.display_health_monitor,
+                                      verbose_name=_("Health Monitor"),
                                       link=links.link_hm_detail_from_pool)
 
     def get_object_id(self, datum):
@@ -119,8 +108,10 @@ class ListenerTableBase(tables.DataTable):
     description = tables.Column("description", verbose_name=_("Description"))
     protocol = tables.Column("protocol", verbose_name=_("Protocol"))
     protocol_port = tables.Column("protocol_port", verbose_name=_("Port"))
-    connection_limit = tables.Column(display_transform.transform_connection_limit, verbose_name=_("Connection Limit"))
-    admin_state_up = tables.Column(display_transform.transform_admin_state_up, verbose_name=_("Admin State"))
+    connection_limit = tables.Column(display_transform.transform_connection_limit,
+                                     verbose_name=_("Connection Limit"))
+    admin_state_up = tables.Column(display_transform.transform_admin_state_up,
+                                   verbose_name=_("Admin State"))
 
     def get_object_id(self, datum):
         return datum.get("id")
@@ -135,12 +126,14 @@ class ListenerTableBase(tables.DataTable):
 class LoadbalancerTableBase(tables.DataTable):
     id = tables.Column("id", verbose_name=_("ID"), hidden=True)
     tenant_id = tables.Column("tenant_id", verbose_name=_("Tenant ID"), hidden=True)
-    name = tables.Column("name", verbose_name=_("Name"), link=links.link_loadbalancer_detail_by_id)
+    name = tables.Column("name", verbose_name=_("Name"),
+                         link=links.link_loadbalancer_detail_by_id)
     description = tables.Column("description", verbose_name=_("Description"))
     vip_address = tables.Column("vip_address", verbose_name=_("VIP Address"))
     vip_subnet_id = tables.Column("vip_subnet_id", verbose_name=_("VIP Subnet"))
     operating_status = tables.Column("operating_status", verbose_name=_("Operating Status"))
-    provisioning_status = tables.Column("provisioning_status", verbose_name=_("Provisioning Status"))
+    provisioning_status = tables.Column("provisioning_status",
+                                        verbose_name=_("Provisioning Status"))
 
     def get_object_id(self, datum):
         return datum.get("id")
@@ -150,13 +143,3 @@ class LoadbalancerTableBase(tables.DataTable):
         verbose_name = "loadbalancertable"
         table_actions = tuple()
         row_actions = tuple()
-
-
-class DeleteActionBase(tables.DeleteAction):
-    def __init__(self, data_single, data_plural, **kwargs):
-        super(DeleteAction, self).__init__(**kwargs)
-
-        self.data_single = kwargs.get("data_single")
-        self.data_plural = "{0}s".format(self.data_single)
-        self.verb_present = kwargs.get("verb_present", "Delete")
-        self.verb_past = kwargs.get("verb_past", "Scheduled Deletion of")
