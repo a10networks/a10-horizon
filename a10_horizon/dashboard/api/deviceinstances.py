@@ -1,4 +1,4 @@
-# Copyright (C) 2015 A10 Networks Inc. All rights reserved.
+#    Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -11,6 +11,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+
 
 from __future__ import absolute_import
 
@@ -30,7 +31,8 @@ class A10DeviceInstance(NeutronAPIDictWrapper):
 
 
 def get_a10_device_instances(request, **kwargs):
-    rv = neutronclient(request).list_a10_device_instances(**kwargs).get(a10_device_instance.RESOURCES)
+    rv = neutronclient(request).list_a10_device_instances(**kwargs).get(
+        a10_device_instance.RESOURCES)
     return map(A10DeviceInstance, rv)
 
 
@@ -45,11 +47,13 @@ def delete_a10_device_instance(request, id):
 
 def create_a10_device_instance(request, **kwargs):
     body = {a10_device_instance.RESOURCE: kwargs}
-    rv = neutronclient(request).create_a10_device_instance(body=body).get(a10_device_instance.RESOURCE)
+    rv = neutronclient(request).create_a10_device_instance(body=body).get(
+        a10_device_instance.RESOURCE)
     return A10DeviceInstance(rv)
 
 
 def update_a10_device_instance(request, id, **kwargs):
     body = {a10_device_instance.RESOURCE: kwargs}
-    rv = neutronclient(request).update_a10_device_instance(id, body=body).get(a10_device_instance.RESOURCE)
+    rv = neutronclient(request).update_a10_device_instance(id, body=body).get(
+        a10_device_instance.RESOURCE)
     return A10DeviceInstance(rv)

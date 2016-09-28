@@ -1,4 +1,5 @@
-#    Copyright (C) 2016, A10 Networks Inc. All rights reserved.
+#    Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
+#
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
 #    a copy of the License at
@@ -11,11 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
-# from django.utils.translation import ugettext_lazy as _
-from openstack_dashboard.local import local_settings
-
-import a10_horizon
 
 ADD_INSTALLED_APPS = ['a10_horizon.dashboard.a10networks']
 FEATURE = "a10horizon"

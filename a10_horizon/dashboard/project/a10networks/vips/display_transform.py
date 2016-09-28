@@ -1,4 +1,4 @@
-# Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
+#    Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -12,12 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+
 import logging
 
-from django.core.urlresolvers import reverse
-from django.core.urlresolvers import reverse_lazy
-from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import ungettext_lazy
+
+LOG = logging.getLogger(__name__)
 
 DEFAULT_HM_TRANSFORM = lambda x: "{0}".format(x.get("type"))
 

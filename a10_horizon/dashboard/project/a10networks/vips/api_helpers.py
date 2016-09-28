@@ -1,4 +1,5 @@
-#    Copyright 2014-2016 A10 Networks, Inc.
+#    Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
+#
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
 #    a copy of the License at
@@ -20,6 +21,9 @@ formatted output for special display cases.
 """
 
 from horizon.utils import memoized
+import logging
+
+LOG = logging.getLogger(__name__)
 
 # lbaasv2 api
 try:
@@ -53,12 +57,11 @@ def listener_field_data(request, pfilter=None, **kwargs):
 
 @memoized.memoized_method
 def listener_protocol_field_data(request, **kwargs):
-    return [("","Select a protocol"),
-                ("TCP", "TCP"),
-                ("HTTP", "HTTP"),
-                ("HTTPS", "HTTPS"),
-                ("TERMINATED_HTTPS", "Terminated HTTPS")
-        ]
+    return [("", "Select a protocol"),
+            ("TCP", "TCP"),
+            ("HTTP", "HTTP"),
+            ("HTTPS", "HTTPS"),
+            ("TERMINATED_HTTPS", "Terminated HTTPS")]
 
 
 @memoized.memoized_method
@@ -71,8 +74,8 @@ def pool_field_data(request, pfilter=DEFAULT_FILTER, **kwargs):
 @memoized.memoized_method
 def lb_algorithm_field_data(request, insert_empty=True):
     rv = [("ROUND_ROBIN", "Round Robin"),
-            ("LEAST_CONNECTIONS", "Least Connections"),
-            ("SOURCE_IP", "Source IP Address")]
+          ("LEAST_CONNECTIONS", "Least Connections"),
+          ("SOURCE_IP", "Source IP Address")]
 
     if insert_empty:
         rv.insert(0, ("", "Select an algorithm"))
@@ -84,22 +87,19 @@ def pool_protocol_field_data(request):
     return [("", "Select a protocol"),
             ("HTTP", "HTTP"),
             ("HTTPS", "HTTPS"),
-            ("TCP", "TCP")
-    ]
+            ("TCP", "TCP")]
 
 
 @memoized.memoized_method
 def session_persistence_field_data(request, lowercase_values=True):
     upper_transform = lambda x: str(x).upper()
     lower_transform = lambda x: str(x).lower()
-    value_transform =  lower_transform if lowercase_values else upper_transform
+    value_transform = lower_transform if lowercase_values else upper_transform
 
-    return [
-                ("NONE", "None"),
-                (value_transform("source_ip"), "Source IP"),
-                (value_transform("http_cookie"), "HTTP Cookie"),
-                (value_transform("app_cookie"), "App Cookie")
-    ]
+    return [("NONE", "None"),
+            (value_transform("source_ip"), "Source IP"),
+            (value_transform("http_cookie"), "HTTP Cookie"),
+            (value_transform("app_cookie"), "App Cookie")]
 
 
 @memoized.memoized_method
@@ -108,15 +108,13 @@ def healthmonitor_type_field_data(request):
             ("http", "HTTP"),
             ("https", "HTTPS"),
             ("ping", "PING"),
-            ("tcp", "TCP")
-    ]
+            ("tcp", "TCP")]
 
 
 def healthmonitor_httpmethod_field_data(request):
     return [("", "Select an HTTP Method"),
             ("GET", "GET"),
-            ("POST", "POST")
-    ]
+            ("POST", "POST")]
 
 
 @memoized.memoized_method
