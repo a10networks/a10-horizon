@@ -21,6 +21,8 @@ from horizon import exceptions
 from horizon import forms
 from horizon import messages
 
+LOG = logging.getLogger(__name__)
+
 # from openstack_dashboard import api
 # lbaasv2 api
 try:
@@ -30,9 +32,8 @@ except ImportError as ex:
     LOG.warning("Could not import lbaasv2 dashboard API")
 
 from a10_horizon.dashboard.helpers import context_processors as from_ctx
-
-import forms as p_forms
 import api_helpers
+
 
 LOG = logging.getLogger(__name__)
 
@@ -107,19 +108,18 @@ class UpdatePoolForm(forms.SelfHandlingForm):
     lb_algorithm = forms.ChoiceField(label=_("LB Algorithm"), required=True)
     session_persistence = forms.ChoiceField(label=_("Session Persistence"),
                                             widget=forms.Select(
-                                                    attrs={
-                                                        "class": "switchable",
-                                                        "data-slug": "session_persistence"
-                                                    }),
+                                            attrs={
+                                                "class": "switchable",
+                                                "data-slug": "session_persistence"
+                                            }),
                                             required=True)
     cookie_name = forms.CharField(label=_("Cookie Name"), min_length=1, max_length=255,
                                   widget=forms.TextInput(
-                                    attrs={
-                                        "class": "switched",
-                                        "data-switch-on": "session_persistence",
-                                        "data-session_persistence-app_cookie": _("App Cookie Name")
-                                    }),
-
+                                  attrs={
+                                      "class": "switched",
+                                      "data-switch-on": "session_persistence",
+                                      "data-session_persistence-app_cookie": _("App Cookie Name")
+                                  }),
                                   required=False)
     admin_state_up = forms.BooleanField(label=_("Admin State"), required=False, initial=True)
 
@@ -137,14 +137,14 @@ class UpdatePoolForm(forms.SelfHandlingForm):
 
         super(UpdatePoolForm, self).__init__(request, *args, **kwargs)
 
-        self.fields["session_persistence"].choices = api_helpers.session_persistence_field_data(request, True)
+        self.fields["session_persistence"].choices = api_helpers.session_persistence_field_data(
+            request, True)
         self.fields["lb_algorithm"].choices = api_helpers.lb_algorithm_field_data(request, False)
 
         self.fields["session_persistence"].initial = sp_type.lower()
         self.fields["cookie_name"].initial = sp_cookie
 
         self.submit_url = kwargs.get("id")
-
 
     def handle(self, request, context):
         try:
@@ -174,7 +174,8 @@ class UpdatePoolForm(forms.SelfHandlingForm):
 
 class UpdateMemberForm(forms.SelfHandlingForm):
     id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
-    pool_id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    pool_id = forms.CharField(label=_("ID"),
+                              widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
     weight = forms.IntegerField(label=_("Weight"))
     admin_state_up = forms.BooleanField(label=_("Admin State"), required=False, initial=True)
 
@@ -186,7 +187,6 @@ class UpdateMemberForm(forms.SelfHandlingForm):
 
     def handle(self, request, context):
         try:
-            id = context["id"]
             pool_id = context["pool"]
             del context["id"]
             del context["pool_id"]
@@ -205,5 +205,4 @@ class UpdateMemberForm(forms.SelfHandlingForm):
     def body_from_context(self, context):
         return {"member": {
             "name": context.get("name"),
-            "weight": context.get("weight"),
-        }}
+            "weight": context.get("weight")}}

@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from horizon import exceptions
 from horizon import tabs
-from openstack_dashboard.api import lbaas as lbaasv1_api
+
 
 LOG = logging.getLogger(__name__)
 
@@ -133,12 +133,12 @@ class VipsTab(tabs.TableTab):
                               _('Unable to retrieve VIP list.'))
         return result
 
-
     def _transform(self, listeners, lbs):
         rv = []
 
         for listener in listeners:
-            candidate_lbs = [x for x in lbs if x.get("id") in [y.get("id") for y in listener.get("loadbalancers")]]
+            candidate_lbs = [x for x in lbs if x.get("id") in
+                [y.get("id") for y in listener.get("loadbalancers")]]
             if len(candidate_lbs) > 0:
                 lb = candidate_lbs[0]
                 row = {
@@ -167,6 +167,7 @@ class A10LBTabs(tabs.TabGroup):
 
     sticky = False
     show_single_tab = True
+
 
 class MonitorDetailsTabs(tabs.TabGroup):
     slug = "a10monitordetailstabs"

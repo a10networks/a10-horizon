@@ -23,23 +23,13 @@ from horizon import tables
 
 LOG = logging.getLogger(__name__)
 
-# lbaasv2 api
-# TODO(mdurrant) - move API import into a module on it's own
-#                  and hijack module __init__ to switch out lbaas apis
-#                  dependent on the loaded neutron extensions.
-
-try:
-    from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
-except ImportError as ex:
-    LOG.exception(ex)
-    LOG.error("Could not import lbaasv2 dashboard API")
-
 import base_table as base
 import links
 
 
 URL_PREFIX = "horizon:project:a10vips:"
 SUCCESS_URL = URL_PREFIX + "index"
+
 
 def name_link(datum):
     return reverse_lazy("")
@@ -129,10 +119,6 @@ class DeleteVipAction(tables.DeleteAction):
             count
         )
 
-    def delete(self, request, obj_id):
-        import pdb; pdb.set_trace()
-        return False
-
     def allowed(self, request, obj):
         return True
 
@@ -149,7 +135,6 @@ class DeleteLoadBalancerAction(tables.DeleteAction):
             u"Delete Load Balancer",
             u"Delete Load Balancers",
             count)
-
 
     @staticmethod
     def action_past(count):
@@ -212,18 +197,9 @@ class DeletePoolAction(tables.DeleteAction):
             count)
 
     def allowed(self, request, obj):
-        import pdb; pdb.set_trace()
         if obj:
             return len(obj.get("members")) == 0 and not obj.get("healthmonitor_id")
         return True
-
-    def action(self, request, obj_id):
-        import pdb; pdb.set_trace()
-        return False
-
-    def delete(self, request, obj_id):
-        import pdb; pdb.set_trace()
-        return False
 
 
 class DeleteMemberAction(tables.DeleteAction):
@@ -273,8 +249,6 @@ class DeleteHealthMonitorAction(tables.DeleteAction):
     def allowed(self, request, obj):
         # table check
         if not obj:
-            # rows = self.table.get_rows()
-            # allowable = [x for x in rows if x.get("")]
             return True
         # row check
         return len(obj.get("pools", [])) == 0
@@ -303,23 +277,7 @@ class TestVipAction(tables.Action):
     def allowed(self, request, obj):
         # TODO(mdurrant) - We need an extension that performs this action.
         # Put in logic here for whether or not we can actually test something.
-        # This will allow is to do simple TCP tests in the beginning and slowly expand our wheelhouse.
         return True
-
-
-# class EditVipAction(tables.LinkAction):
-#     name = "editvip"
-#     verbose_name = _("Edit VIP")
-#     url = URL_PREFIX + "edit"
-#     classes = ("ajax-modal",)
-#     icon = "plus"
-#     policy_rules = ("network",)  # FIXME(mdurrant) - A10-specific policies?
-#     success_url = "horizon:project:a10vips:index"
-
-#     def get_link_url(self, datum):
-#         base_url = reverse(URL_PREFIX + "edit",
-#                            kwargs={'id': datum["id"]})
-#         return base_url
 
 
 class UpdateLoadBalancerAction(tables.LinkAction):
@@ -433,5 +391,3 @@ class ProjectLoadbalancerTable(base.LoadbalancerTableBase):
         verbose_name = "loadbalancers"
         table_actions = (CreateLoadBalancerLink, DeleteLoadBalancerAction, )
         row_actions = (UpdateLoadBalancerAction, DeleteLoadBalancerAction, )
-
-

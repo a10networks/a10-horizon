@@ -12,14 +12,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from django.core.urlresolvers import reverse_lazy
 import logging
 
-from django.core.urlresolvers import reverse
-from django.core.urlresolvers import reverse_lazy
-from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import ungettext_lazy
-
+LOG = logging.getLogger(__name__)
 URL_PREFIX = "horizon:project:a10vips:"
+
 
 def link_loadbalancer_detail_by_id(datum):
     return reverse_lazy(URL_PREFIX + "lbdetail", kwargs={"id": datum["id"]})
