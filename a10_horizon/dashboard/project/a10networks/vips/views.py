@@ -15,21 +15,22 @@
 import logging
 import re
 
-from django.core.urlresolvers import reverse
 from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 
 from horizon import exceptions
 from horizon import forms
-from horizon.utils import memoized
 from horizon import messages
-from horizon import tabs
 from horizon import tables
-from horizon import views
+from horizon import tabs
 from horizon import workflows
+
+from horizon.utils import memoized
 
 LOG = logging.getLogger(__name__)
 
+
+# TODO(mdurrant) move this into a module that exposes lbaasv2 and raises an exception if not
 # lbaasv2 api
 try:
     from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
@@ -39,8 +40,8 @@ except ImportError as ex:
 
 import base_table
 import forms as p_forms
-import tabs as p_tabs
 import tables as p_tables
+import tabs as p_tabs
 import workflows as p_workflows
 
 URL_PREFIX = "horizon:project:a10vips:"
@@ -59,8 +60,6 @@ class IndexView(tabs.TabView):
     # TODO(mdurrant) - Move this to a helper method. If exceptions are raised,
     # return a list of errors to be bubbled to the UI.
     def _lb_delete_nested(request, lb_id):
-        success = False
-
         lb_details = lbaasv2_api.get_loadbalancer(request, lb_id)
 
         errors = []
@@ -81,13 +80,11 @@ class IndexView(tabs.TabView):
             except Exception as e:
                 LOG.exception(e)
                 errors.append("Could not delete load balancer {0}")
-                success = False
         else:
             joined = "\n".join(errors)
             exceptions.handle(_(joined))
 
         return len(errors) < 1
-
 
     delete_actions = {
         "vip": {
@@ -121,7 +118,6 @@ class IndexView(tabs.TabView):
             PLURAL: "Health Monitors"
         }
     }
-
 
     def post(self, request, *args, **kwargs):
         obj_ids = request.POST.getlist('object_ids')
@@ -169,7 +165,7 @@ class UpdateLoadBalancerView(forms.views.ModalFormView):
                 return lbaasv2_api.get_loadbalancer(self.request, id)
             except Exception as ex:
                 redirect = self.success_url
-                msg = _("Unable to retrieve VIP: %s") % ex
+                msg = _("Unable to retrieve Load Balancer: %s") % ex
                 exceptions.handle(self.request, msg, redirect=redirect)
 
     def get_initial(self):
@@ -344,7 +340,6 @@ class ListenerTableDataSourceMixin(object):
     def get_listenertable_data(self):
         rv = []
         try:
-            pool_id = self.kwargs['id']
             initial = self.get_initial()
             listener_ids = initial.get("listeners", []) or []
             if len(listener_ids) > 0:
@@ -377,7 +372,6 @@ class MonitorDetailView(tables.MultiTableView):
     # Get the pool IDs from the initial object and fetch their details
     def get_pooltable_data(self):
         rv = []
-        id = self.kwargs['id']
         monitor = self.get_initial()
         pool_ids = map(lambda x: x.get("id"), monitor.get("pools"))
 
@@ -397,7 +391,6 @@ class MonitorDetailView(tables.MultiTableView):
     @memoized.memoized_method
     def _get_pool(self):
         rv = {}
-        id = self.kwargs["id"]
 
         pool_id = None
         # pool_id = self.context[self.context_object_name].get("pool_id")
@@ -406,8 +399,9 @@ class MonitorDetailView(tables.MultiTableView):
                 rv = lbaasv2_api.pool_get(self.request, pool_id)
             except Exception as ex:
                 redirect = self.success_url
-                msg = _("Unable to retrieve pool info for %s" % pool_id)
+                msg = _("Unable to retrieve Pool: %s") % ex
                 exceptions.handle(self.request, msg, redirect=redirect)
+                LOG.exception(ex)
         return rv
 
     @memoized.memoized_method
@@ -451,13 +445,13 @@ class MemberDetailView(tabs.TabView):
         pool_id = self.kwargs["pool_id"]
 
         if pool_id:
-
             try:
                 rv = lbaasv2_api.pool_get(self.request, pool_id)
             except Exception as ex:
                 redirect = self.success_url
-                msg = _("Unable to retrieve pool info for %s" % pool_id)
+                msg = _("Unable to retrieve pool: %s") % ex
                 exceptions.handle(self.request, msg, redirect=redirect)
+                LOG.exception(ex)
         return rv
 
     @memoized.memoized_method
@@ -572,7 +566,6 @@ class ListenerDetailView(tables.MultiTableView):
     def get_pooltable_data(self):
         rv = []
         try:
-            listener_id = self.kwargs['id']
             listener = self.get_initial()
             pool_id = listener.get("default_pool_id") or None
 
@@ -594,7 +587,6 @@ class ListenerDetailView(tables.MultiTableView):
     def get_loadbalancertable_data(self):
         rv = []
         try:
-            listener_id = self.kwargs['id']
             listener = self.get_initial()
             lb_ids = listener.get("loadbalancers")
 
@@ -608,7 +600,6 @@ class ListenerDetailView(tables.MultiTableView):
             exceptions.handle(self.request,
                               _('Unable to retrieve loadbalancers list.'))
         return rv
-
 
 
 class LBDetailView(tables.MultiTableView, ListenerTableDataSourceMixin):

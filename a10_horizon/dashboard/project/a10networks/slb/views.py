@@ -1,4 +1,4 @@
-# Copyright (C) 2016, A10 Networks Inc. All rights reserved.
+# Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -16,15 +16,16 @@ from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 import logging
+import re
 
 from horizon import exceptions
 from horizon import forms
-from horizon.utils import memoized
 from horizon import messages
-from horizon import tabs
 from horizon import tables
+from horizon import tabs
 from horizon import workflows
-import re
+
+from horizon.utils import memoized
 
 from a10_horizon.dashboard.api import scaling as api
 

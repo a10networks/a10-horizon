@@ -13,23 +13,15 @@
 #    under the License.
 
 import logging
-import uuid
 
-from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from horizon import exceptions
 import horizon.forms as forms
-import horizon.tables as tables
 import horizon.workflows as workflows
 
-from openstack_dashboard import api as os_api
-import openstack_dashboard.api.glance as glance_api
-import openstack_dashboard.api.neutron as neutron_api
-import openstack_dashboard.api.nova as nova_api
 from openstack_dashboard.dashboards.project.instances import utils as instance_utils
 
 from a10_horizon.dashboard.api import deviceinstances as api
-
 import instance_helpers
 
 
@@ -63,7 +55,6 @@ class SetInstanceDetailsAction(workflows.Action):
     def populate_data_networks_choices(self, request, context):
         return instance_utils.network_field_data(request)
 
-
     class Meta(object):
         name = _("Create New vThunder Instance")
         # TODO(mdurrant) - Add a10-specific permissions
@@ -87,13 +78,14 @@ class AddDeviceInstanceWorkflow(workflows.Workflow):
 
     def handle(self, request, context):
         # Create the instance manager, giving it the context so it knows how to auth
-        auth_url = instance_helpers.url_for(request)
         config = instance_helpers.default_config(request)
 
         try:
-            context["image"] ='54115e55-82b0-4551-9f09-4cf0ce138f8a'
+            # TODO(mdurrant) - pull this from config.
+            context["image"] = '54115e55-82b0-4551-9f09-4cf0ce138f8a'
             context["flavor"] = "vthunder.small"
             context["networks"] = [context["mgmt_network"]]
+
             for x in context["data_networks"]:
                 context["networks"].append(x)
 
@@ -119,7 +111,6 @@ class AddDeviceInstanceWorkflow(workflows.Workflow):
         return True
 
     def _build_record(self, instance, context):
-        # TODO - set these options on the form.
         rv = {
             "name": context["name"],
             "host": instance["ip_address"],

@@ -1,4 +1,4 @@
-# Copyright 2015,  A10 Networks
+#    Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -12,13 +12,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+
 from django.utils.translation import ugettext_lazy as _
 
 from horizon import exceptions
 from horizon import tabs
 
 import tables as p_tables
-import a10_horizon.dashboard.api.deviceinstances as a10api
+
+
+LOG = logging.getLogger(__name__)
 
 
 class OverviewTableTab(tabs.TableTab):
@@ -52,7 +56,7 @@ class OverviewTabs(tabs.TabGroup):
     template_name = "horizon/common/_tab_group.html"
     sticky = False
     show_single_tab = True
-    tabs = (OverviewTableTab, OverviewTopologyTab, OverviewAnalyticsTab,)
+    tabs = (OverviewTableTab, OverviewTopologyTab, )
 
 
 class OverviewTabView(tabs.TabView):

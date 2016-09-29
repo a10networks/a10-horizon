@@ -1,4 +1,4 @@
-# Copyright 2015 A10 Networks
+# Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -33,6 +33,7 @@ LOG = logging.getLogger(__name__)
 
 URL_PREFIX = "a10networks:instances:"
 
+
 class IndexView(tabs.TabbedTableView):
     tab_group_class = project_tabs.InstanceTabs
     template_name = "instances/_tabs.html"
@@ -41,11 +42,10 @@ class IndexView(tabs.TabbedTableView):
     def post(self, request, *args, **kwargs):
         obj_ids = request.POST.getlist('object_ids')
         action = request.POST['action']
-        m = re.search('.delete([a-z]+)', action).group(1)
+
         if obj_ids == []:
             obj_ids.append(re.search('([0-9a-z-]+)$', action).group(1))
 
-        auth_url = instance_helpers.url_for(request)
         config = instance_helpers.default_config(request)
 
         instance_mgr = instance_helpers.instance_manager_from_context(config, request)

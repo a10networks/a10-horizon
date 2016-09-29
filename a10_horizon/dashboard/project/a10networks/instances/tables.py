@@ -14,7 +14,6 @@
 
 import logging
 
-# from django.core.urlresolvers import reverse
 from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext_lazy
@@ -25,13 +24,6 @@ import a10_horizon.dashboard.api.deviceinstances as a10api
 import instance_helpers
 
 LOG = logging.getLogger(__name__)
-
-
-#TODO(orchestration) - Move this method to a shareable location.
-def instance_manager_for(request):
-    return im.InstanceManager(
-        base.project_id_for(request),
-        session=base.session_for(request))
 
 
 class AddDeviceInstanceAction(tables.LinkAction):
@@ -96,7 +88,6 @@ class A10DeviceInstanceTable(tables.DataTable):
                                verbose_name=_("IP Address"), hidden=False,)
     nova_instance_id = tables.Column("nova_instance_id", verbose_name=_("Nova Instance ID"),
                                      hidden=False, link=get_instance_detail)
-
 
     class Meta(object):
         name = "a10deviceinstancetable"

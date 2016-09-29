@@ -1,4 +1,4 @@
-# Copyright (C) 2016, A10 Networks Inc. All rights reserved.
+#    Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -12,21 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.core.urlresolvers import reverse_lazy
-from django.utils.translation import ugettext_lazy as _
-
-from horizon import exceptions
-from horizon import forms
-from horizon.utils import memoized
-from horizon import messages
-from horizon import tabs
-from horizon import views
-from horizon import workflows
-
 import logging
 
+from horizon import views
 
-import re
 
 LOG = logging.getLogger(__name__)
 

@@ -13,21 +13,16 @@
 #    under the License.
 
 import logging
-import uuid
 
 from django.core.urlresolvers import reverse_lazy
-from django.core.validators import MaxValueValidator, MinValueValidator
-from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 
 from horizon import exceptions
 from horizon import forms
-from horizon import tables
 from horizon import workflows
 
 from neutron_lbaas_dashboard.api import lbaasv2
 # Yeah, instances in networking - easy way to get subnet data.
-from openstack_dashboard.api import neutron as neutron_api
 from openstack_dashboard.dashboards.project.instances import utils as instance_utils
 
 from a10_horizon.dashboard.helpers import context_processors as from_ctx
@@ -58,10 +53,9 @@ LISTENER_POOL_PROTOCOLS = {
 
 
 class CreateLbAction(workflows.Action):
-    lb_name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
-                           required=True)
-    lb_description = forms.CharField(label=_("Description"), min_length=1,
-                                  max_length=255, required=False)
+    lb_name = forms.CharField(label=_("Name"), min_length=1, max_length=255, required=True)
+    lb_description = forms.CharField(label=_("Description"), min_length=1, max_length=255,
+                                     required=False)
     vip_subnet = forms.ChoiceField(label=_("VIP Subnet"), required=True)
     admin_state_up = forms.BooleanField(label=_("Admin State"), required=False, initial=True)
 
@@ -94,7 +88,6 @@ class CreateListenerAction(workflows.Action):
         # TODO(mdurrant) - Return these from a service
         return api_helpers.listener_protocol_field_data(request)
 
-
     class Meta(object):
         name = _("Listener Data")
         # TODO(mdurrant) - Add a10-specific permissions
@@ -119,7 +112,6 @@ class CreatePoolAction(workflows.Action):
     def populate_pool_protocol_choices(self, request, context):
         return api_helpers.pool_protocol_field_data(request)
 
-
     class Meta(object):
         name = _("Create Pool")
         # TODO(mdurrant) - Add a10-specific permissions
@@ -134,8 +126,8 @@ class CreateMemberAction(workflows.Action):
     member_subnet_id = forms.ChoiceField(label=_("Member Subnet"), required=True)
     # TODO(mdurrant) - Make a checkbox setting DHCP/manual
     member_address = forms.GenericIPAddressField(label=_("Member IP"), required=False)
-    member_protocol_port = forms.IntegerField(label=_("Protocol Port"), min_value=1, max_value=65535,
-                                              required=True)
+    member_protocol_port = forms.IntegerField(label=_("Protocol Port"), min_value=1,
+                                              max_value=65535, required=True)
     admin_state_up = forms.BooleanField(label=_("Admin State"), required=False, initial=True)
 
     def __init__(self, request, *args, **kwargs):
@@ -158,36 +150,29 @@ class CreateMemberAction(workflows.Action):
         help_text = _("Specify pool, weight, subnet/address, and port for member.")
 
 
-
 class CreateHealthMonitorAction(workflows.Action):
-    def hide_http_controls(title):
+    def hide_http(title):
         return {
             "class": "switched",
             "data-switch-on": "monitor_type",
             "data-monitor_type-http": title,
             "data-monitor_type-https": title,
-    }
+        }
 
     pool_id = forms.ChoiceField(label=_("Pool"), required=True)
     monitor_type = forms.ChoiceField(label=_("Monitor Type"), required=True,
-                                        widget=forms.Select(
-                                                    attrs={
-                                                        "class": "switchable",
-                                                        "data-slug": "monitor_type"
-                                                    })
-                                    )
+                                     widget=forms.Select(
+                                     attrs={"class": "switchable", "data-slug": "monitor_type"}))
 
     delay = forms.IntegerField(label=_("Delay"), required=True)
     timeout = forms.IntegerField(label=_("Timeout"), required=True)
     max_retries = forms.IntegerField(label=_("Maximum Retries"), required=True)
-
-    http_method = forms.ChoiceField(label=_("HTTP Method"),
-                                    widget=forms.Select(attrs=hide_http_controls("HTTP Method")),
-                                    required=False)
-    url_path = forms.CharField(label=_("URL Path"), widget=forms.TextInput(attrs=hide_http_controls("URL Path")),
-                               required=False)
-    # expected codes needs to be a comma-separated text box... validation can be a regex of acceptable codes.
-    expected_codes = forms.CharField(label=_("Expected Codes"), widget=forms.TextInput(attrs=hide_http_controls("Expected Codes")),
+    http_method = forms.ChoiceField(label=_("HTTP Method"), required=False,
+                                    widget=forms.Select(attrs=hide_http("HTTP Method")))
+    url_path = forms.CharField(label=_("URL Path"), required=False,
+                               widget=forms.TextInput(attrs=hide_http("URL Path")),)
+    expected_codes = forms.CharField(label=_("Expected Codes"),
+                                     widget=forms.TextInput(attrs=hide_http("Expected Codes")),
                                      required=False, initial="200",
                                      help_text="Expected HTTP codes in comma-separated format.")
     admin_state_up = forms.BooleanField(label=_("Admin State"), required=False, initial=True)
@@ -202,7 +187,6 @@ class CreateHealthMonitorAction(workflows.Action):
     def populate_http_method_choices(self, request, context):
         return api_helpers.healthmonitor_httpmethod_field_data(request)
 
-
     class Meta(object):
         name = _("Create Health Monitor")
         # TODO(mdurrant) - Add a10-specific permissions
@@ -212,7 +196,8 @@ class CreateHealthMonitorAction(workflows.Action):
 
 class CreateVipAction(workflows.Action):
     protocol = forms.ChoiceField(label=_("Protocol"), required=True)
-    protocol_port = forms.IntegerField(label=_("Protocol Port"), min_value=1, max_value=65535, required=True)
+    protocol_port = forms.IntegerField(label=_("Protocol Port"), min_value=1, max_value=65535,
+                                       required=True)
     # TODO(mdurrant): Add connection limit
 
     def populate_vip_subnet_choices(self, request, context):
@@ -221,7 +206,6 @@ class CreateVipAction(workflows.Action):
     def populate_protocol_choices(self, request, context):
         # TODO(mdurrant) - Return these from a service
         return api_helpers.listener_protocol_field_data(request)
-
 
     class Meta(object):
         name = _("Protocol Data")
@@ -236,25 +220,21 @@ class CreateSessionPersistenceAction(workflows.Action):
     # TODO(mdurrant): Make this sucker dynamic - filter based on the protocol.
     session_persistence = forms.ChoiceField(label=_("Session Persistence"),
                                             widget=forms.Select(
-                                                    attrs={
-                                                        "class": "switchable",
-                                                        "data-slug": "session_persistence"
-                                                    }),
+                                            attrs={"class": "switchable",
+                                                   "data-slug": "session_persistence"}),
                                             required=True)
     cookie_name = forms.CharField(label=_("Cookie Name"), min_length=1, max_length=255,
                                   widget=forms.TextInput(
-                                    attrs={
-                                        "class": "switched",
-                                        "data-switch-on": "session_persistence",
-                                        "data-session_persistence-app_cookie": _("App Cookie Name")
-                                    }),
-
+                                  attrs={
+                                      "class": "switched",
+                                      "data-switch-on": "session_persistence",
+                                      "data-session_persistence-app_cookie": _("App Cookie Name")
+                                  }),
                                   required=False)
 
     def populate_session_persistence_choices(self, request, context):
         # TODO(mdurrant): Get these from web service
         return api_helpers.session_persistence_field_data(request)
-
 
     class Meta(object):
         name = _("Session Persistence")
@@ -272,7 +252,7 @@ class CreateListenerStep(workflows.Step):
     action_class = CreateListenerAction
     # TODO(mdurrant): Add SSL data
     # TODO(mdurrant): Support all A10 protocols
-    contributes = ("loadbalancer_id", "name","protocol", "protocol_port")
+    contributes = ("loadbalancer_id", "name", "protocol", "protocol_port")
 
 
 class CreateVipStep(workflows.Step):
@@ -286,7 +266,8 @@ class CreatePoolStep(workflows.Step):
     action_class = CreatePoolAction
     # TODO(mdurrant): Support all A10 LBs.
     # the pool protocol merely acts as a constraint on persistence
-    contributes = ("listener_id", "lb_algorithm", "pool_protocol", "session_persistence", "cookie_name")
+    contributes = ("listener_id", "lb_algorithm", "pool_protocol", "session_persistence",
+                   "cookie_name")
 
 
 class CreateMemberStep(workflows.Step):
@@ -304,8 +285,8 @@ class CreateSessionPersistenceStep(workflows.Step):
 
 class CreateHealthMonitorStep(workflows.Step):
     action_class = CreateHealthMonitorAction
-    contributes = ("pool_id", "monitor_type", "delay", "timeout", "http_method", "url_path", "expected_codes",
-                   "max_retries", "admin_state_up")
+    contributes = ("pool_id", "monitor_type", "delay", "timeout", "http_method", "url_path",
+                   "expected_codes", "max_retries", "admin_state_up")
 
 
 class CreateLoadBalancerWorkflow(workflows.Workflow):
@@ -318,9 +299,7 @@ class CreateLoadBalancerWorkflow(workflows.Workflow):
     def handle(self, request, context):
         try:
             lb_body = from_ctx.get_lb_body_from_context(context)
-            import pdb; pdb.set_trace()
-            lb = lbaasv2.create_loadbalancer(request, lb_body)
-            lb_id = lb.get("id")
+            lbaasv2.create_loadbalancer(request, lb_body)
             return True
         except Exception as ex:
             LOG.exception(ex)
@@ -338,8 +317,7 @@ class CreateListenerWorkflow(workflows.Workflow):
     def handle(self, request, context):
         try:
             body = from_ctx.get_listener_body_from_context(context)
-            listener = lbaasv2.create_listener(request, body)
-            id = listener.get("id")
+            lbaasv2.create_listener(request, body)
             return True
         except Exception as ex:
             LOG.exception(ex)
@@ -356,8 +334,7 @@ class CreatePoolWorkflow(workflows.Workflow):
     def handle(self, request, context):
         try:
             body = from_ctx.get_pool_body_from_context(context)
-            pool = lbaasv2.pool_create(request, **body.get("pool"))
-            id = pool.get("id")
+            lbaasv2.pool_create(request, **body.get("pool"))
             return True
         except Exception as ex:
             LOG.exception(ex)
@@ -375,8 +352,12 @@ class CreatePoolWorkflow(workflows.Workflow):
             listener_protocol = listener.get("protocol")
             valid_protocols = LISTENER_POOL_PROTOCOLS.get(listener_protocol, [])
             if pool_protocol not in valid_protocols:
-                pool_step = self.steps[0].add_step_error(_(protocol_error_msg.format(listener_protocol, pool_protocol)))
-                # exceptions.handle(self.request, exceptions.WorkflowValidationError(protocol_error_msg.format(listener_protocol, pool_protocol)))
+                err_msg = protocol_error_msg.format(listener_protocol, pool_protocol)
+                # TODO(mdurrant) - Get steps by name, something other than index.
+                self.steps[0].add_step_error(_(str(err_msg)))
+                exceptions.handle(self.request,
+                                  exceptions.WorkflowValidationError(protocol_error_msg.format(
+                                      listener_protocol, pool_protocol)))
                 return False
 
         return True
@@ -400,8 +381,7 @@ class CreateMemberWorkflow(workflows.Workflow):
                 pool_id = context.pop("pool_id")
                 self.success_url = reverse_lazy(self.detail_url, kwargs={"id": pool_id})
                 body = from_ctx.get_member_body(context, pool_id)
-                member = lbaasv2.member_create(request, pool_id, body)
-                id = member.get("id")
+                lbaasv2.member_create(request, pool_id, body)
                 return True
         except Exception as ex:
             LOG.exception(ex)
@@ -419,8 +399,7 @@ class CreateHealthMonitorWorkflow(workflows.Workflow):
     def handle(self, request, context):
         try:
             body = from_ctx.get_monitor_body(context)
-            monitor = lbaasv2.healthmonitor_create(request, **body.get("healthmonitor"))
-            id = monitor.get("id")
+            lbaasv2.healthmonitor_create(request, **body.get("healthmonitor"))
             return True
         except Exception as ex:
             LOG.exception(ex)
@@ -441,7 +420,8 @@ class CreateVipWorkflow(workflows.Workflow):
     finalize_button_name = "Create VIP"
 
     def handle(self, request, context):
-        # First, try to create the LB.  Make sure we get an IP back because we need it for the listener.
+        # First, try to create the LB.
+        # Make sure we get an IP back because we need it for the listener.
         # Then, try to create the listener.
         # If we fail, delete the LB.
         success = False
@@ -481,7 +461,5 @@ class CreateVipWorkflow(workflows.Workflow):
                     cleanup_call(request, obj_id)
                 except Exception as ex:
                     LOG.exception(ex)
-                    exceptions.handle(request, _("Could not delete {0} {1}".format(obj_type,
-                                                                                   obj_id)))
+                    exceptions.handle(request, _("Could not delete {} {}") % (obj_type, obj_id))
         return success
-

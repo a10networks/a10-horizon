@@ -18,9 +18,8 @@ from django.utils.translation import ugettext_lazy as _
 from horizon import exceptions
 from horizon import tabs
 
-import a10_horizon.dashboard.project.a10networks.instances.tables as p_tables
 import a10_horizon.dashboard.api.deviceinstances as a10api
-
+import a10_horizon.dashboard.project.a10networks.instances.tables as p_tables
 
 
 LOG = logging.getLogger(__name__)

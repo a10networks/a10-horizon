@@ -138,7 +138,7 @@ class VipsTab(tabs.TableTab):
 
         for listener in listeners:
             candidate_lbs = [x for x in lbs if x.get("id") in
-                [y.get("id") for y in listener.get("loadbalancers")]]
+                             [y.get("id") for y in listener.get("loadbalancers")]]
             if len(candidate_lbs) > 0:
                 lb = candidate_lbs[0]
                 row = {

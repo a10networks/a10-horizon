@@ -1,4 +1,4 @@
-# Copyright 2015 A10 Networks
+# Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -14,8 +14,6 @@
 
 from copy import copy
 
-from keystoneclient.auth.identity import generic as auth_plugin
-from keystoneclient import session as keystone_session
 from openstack_dashboard.api import base
 
 from a10_neutron_lbaas.vthunder import instance_manager
@@ -24,28 +22,6 @@ from a10_neutron_lbaas.vthunder import keystone
 
 def url_for(request):
     return base.url_for(request, "identity")
-
-# def token_for(request):
-#     auth_url = base.url_for(request, 'identity')
-#     auth_token = request.user.token.unscoped_token
-#     project_name = request.user.token.project["name"]
-#     return auth_plugin.Token(token=auth_token,
-#                              project_name=project_name,
-#                              auth_url=auth_url)
-
-
-# def session_for(request):
-#     token = token_for(request)
-#     session = keystone_session.Session(auth=token)
-#     return session
-
-
-# def project_id_for(request):
-#     return request.user.token.project["id"]
-
-
-# def instance_manager_for(request):
-#     return instance_manager.InstanceManager(session_for(request))
 
 
 def instance_manager_from_context(config, context):
