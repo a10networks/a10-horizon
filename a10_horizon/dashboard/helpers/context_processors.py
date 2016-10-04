@@ -26,12 +26,13 @@ MEMBER_DEFAULTS = {
 
 MONITOR_DEFAULTS = {}
 
+
 def get_lb_body_from_context(context):
-    return { "loadbalancer": {
-           "name": context.get("lb_name"),
-           "description": context.get("lb_description"),
-           "vip_subnet_id": context.get("vip_subnet"),
-           "admin_state_up": context.get("admin_state_up")
+    return {"loadbalancer": {
+        "name": context.get("lb_name"),
+        "description": context.get("lb_description"),
+        "vip_subnet_id": context.get("vip_subnet"),
+        "admin_state_up": context.get("admin_state_up")
     }}
 
 
@@ -42,24 +43,25 @@ def get_listener_body_from_context(context, lb_id=None):
             "loadbalancer_id": str(context.get("loadbalancer_id", lb_id)),
             "protocol": str(context.get("protocol")),
             "protocol_port": context.get("protocol_port")
-    }}
+            }}
 
 
 def get_pool_body_from_context(context, listener_id=None):
     or_default = lambda k: context.get(k, POOL_DEFAULTS.get(k))
     name = get_pool_name_from_context(context)
     rv = {"pool": {
-            "name": name,
-            "description": name,
-            "listener_id": listener_id or context.get("listener_id"),
-            "lb_algorithm": context.get("lb_algorithm"),
-            "protocol": context.get("pool_protocol"),
-            "admin_state_up": or_default("admin_state_up"),
+        "name": name,
+        "description": name,
+        "listener_id": listener_id or context.get("listener_id"),
+        "lb_algorithm": context.get("lb_algorithm"),
+        "protocol": context.get("pool_protocol"),
+        "admin_state_up": or_default("admin_state_up"),
     }}
 
     populate_session_persistence_from_context(context, rv)
 
     return rv
+
 
 def get_member_body(context, pool_id):
     or_default = lambda k: context.get(k, MEMBER_DEFAULTS.get(k))
@@ -72,11 +74,12 @@ def get_member_body(context, pool_id):
         "admin_state_up": or_default("admin_state_up")
     }}
 
+
 def get_monitor_body(context, pool_id=None):
     or_default = lambda k: context.get(k, MONITOR_DEFAULTS.get(k))
     body = {"healthmonitor": {
         "pool_id": pool_id or context.get("pool_id"),
-        "type": context.get("monitor_type"),
+        "type": str(context.get("monitor_type", "")).upper(),
         "delay": context.get("delay"),
         "timeout": context.get("timeout"),
         "http_method": context.get("http_method"),
@@ -86,10 +89,10 @@ def get_monitor_body(context, pool_id=None):
         "admin_state_up": or_default("admin_state_up")
     }}
 
-    if "http" in body["healthmonitor"].get("type", "").lower():
+    if "HTTP" in body["healthmonitor"].get("type", "").upper():
         body["healthmonitor"]["http_method"] = context.get("http_method"),
         body["healthmonitor"]["url_path"] = context.get("url_path"),
-        body["healthmonitor"]["expected_codes"] = context.get("expected_codes", [200,201,202])
+        body["healthmonitor"]["expected_codes"] = context.get("expected_codes", [200, 201, 202])
 
     return body
 
@@ -100,7 +103,6 @@ def populate_session_persistence_from_context(context, pool):
 
     if str(sp).upper() != "NONE":
         sp_body["type"] = str(sp).upper()
-
 
         if sp_body["type"] in ["APP_COOKIE"]:
             cookie_name = context.get("cookie_name")

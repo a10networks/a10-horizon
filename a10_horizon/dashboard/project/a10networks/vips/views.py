@@ -337,6 +337,7 @@ class CreateMonitorView(workflows.WorkflowView):
 
 
 class ListenerTableDataSourceMixin(object):
+
     def get_listenertable_data(self):
         rv = []
         try:
