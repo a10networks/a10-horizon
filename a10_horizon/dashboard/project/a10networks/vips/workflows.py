@@ -151,6 +151,7 @@ class CreateMemberAction(workflows.Action):
 
 
 class CreateHealthMonitorAction(workflows.Action):
+
     def hide_http(title):
         return {
             "class": "switched",
@@ -192,6 +193,69 @@ class CreateHealthMonitorAction(workflows.Action):
         # TODO(mdurrant) - Add a10-specific permissions
         permissions = ("openstack.services.network", )
         help_text = _("Specify the details for health monitor.")
+
+
+class SpecifyCertificateAction(workflows.Action):
+
+    def textarea_size(rows=10, cols=25):
+        """
+            Returns default style attributes for text inputs
+            Makes code cleaner by not having these littered everywhere
+        """
+        return {
+            "cols": cols,
+            "rows": rows
+        }
+
+    def hide_create_controls(title, merge_attrs={}):
+        """
+            Returns attributes necessary for hiding/showing
+            certificate controls dependent on the choice selected.
+        """
+        rv = merge_attrs
+
+        rv.update({
+            "class": "switched",
+            "data-switch-on": "certificate_id",
+            "data-certificate_id-_create": title,
+        })
+
+        return rv
+
+    """
+        Specify an existing certificate or create a new one.
+    """
+    certificate_id = forms.ChoiceField(label=_("Select an existing certificate"),
+                                       widget=forms.Select(
+        attrs={"class": "switchable", "data-slug": "certificate_id"}))
+    # TODO(mdurrant) Create a validator for cert data using cryptography lib
+    cert_name = forms.CharField(label=_("Name"),
+                                help_text="Specify a name for the certificate data",
+                                widget=forms.Textarea(attrs=hide_create_controls("Name", textarea_size(rows=1))))
+    cert_data = forms.CharField(label=_("Certificate Data"),
+                                widget=forms.Textarea(
+                                    attrs=hide_create_controls("Certificate Data", textarea_size())),
+                                min_length=1, max_length=8000)
+    key_data = forms.CharField(label=_("Key Data"),
+                               widget=forms.Textarea(attrs=hide_create_controls("Key Data")),
+                               min_length=1, max_length=8000)
+    intermediate_data = forms.CharField(label=_("Intermediate Data"),
+                                        widget=forms.Textarea(
+                                            attrs=hide_create_controls("Intermediate Data")),
+                                        min_length=1, max_length=8000)
+    password = forms.CharField(widget=forms.PasswordInput(
+        render_value=False, attrs=hide_create_controls("Password")), required=False)
+
+    def populate_certificate_id_choices(self, request, context):
+        return api_helpers.certificate_field_data(request)
+
+    class Meta(object):
+        name = _("TLS/SSL Certificate Data")
+        # TODO(mdurrant) = Add certificate-specific permissions.
+        # Delineation of who can/cannot manage certs is critical due to
+        # the sensitive nature of the data
+        permissions = ("openstack.services.network", )
+        help_text = _("Choose an existing certificate or specify certificate data for this listener.")
 
 
 class CreateVipAction(workflows.Action):
@@ -289,6 +353,11 @@ class CreateHealthMonitorStep(workflows.Step):
                    "expected_codes", "max_retries", "admin_state_up")
 
 
+class CreateCertificateStep(workflows.Step):
+    action_class = SpecifyCertificateAction
+    contributes = ("certificate_id", "cert_data", "key_data", "intermediate_data", "password")
+
+
 class CreateLoadBalancerWorkflow(workflows.Workflow):
     slug = "createlb"
     name = _("Create Load Balancer")
@@ -310,7 +379,7 @@ class CreateLoadBalancerWorkflow(workflows.Workflow):
 class CreateListenerWorkflow(workflows.Workflow):
     slug = "createlistener"
     name = _("Create Listener")
-    default_steps = (CreateListenerStep, )
+    default_steps = (CreateListenerStep, CreateCertificateStep, )
     success_url = "horizon:project:a10vips:index"
     finalize_button_name = "Create Listener"
 
@@ -405,6 +474,11 @@ class CreateHealthMonitorWorkflow(workflows.Workflow):
             LOG.exception(ex)
             exceptions.handle(request, _("Could not create health monitor"))
         return False
+
+
+class SpecifyCertificateWorkflow(workflows.Workflow):
+    slug = "specifycert"
+    name = _("Certificate ")
 
 
 class CreateVipWorkflow(workflows.Workflow):

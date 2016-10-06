@@ -33,6 +33,8 @@ except ImportError as ex:
     LOG.warning("Could not import lbaasv2 dashboard API")
 
 from openstack_dashboard.api import neutron as neutron_api
+from a10_horizon.dashboard.api import certificates as certificate_api
+
 
 DEFAULT_FILTER = lambda x: True
 
@@ -40,7 +42,7 @@ DEFAULT_FILTER = lambda x: True
 @memoized.memoized_method
 def loadbalancer_field_data(request, **kwargs):
     return [(x.get("id"),
-            "{0} - {1}".format(x.get("name"), x.get("vip_address")))
+             "{0} - {1}".format(x.get("name"), x.get("vip_address")))
             for x in lbaasv2_api.list_loadbalancers(request, **kwargs)]
 
 
@@ -50,7 +52,7 @@ def listener_field_data(request, pfilter=None, **kwargs):
     pfilter = pfilter or default_filter
 
     return [(x.get("id"),
-            "{0}".format(x.get("name")))
+             "{0}".format(x.get("name")))
             for x in lbaasv2_api.list_listeners(request, **kwargs)
             if pfilter(x)]
 
@@ -67,7 +69,7 @@ def listener_protocol_field_data(request, **kwargs):
 @memoized.memoized_method
 def pool_field_data(request, pfilter=DEFAULT_FILTER, **kwargs):
     return [(x.get("id"),
-            "{1} - {0}".format(x.get("name"), x.get("protocol")))
+             "{1} - {0}".format(x.get("name"), x.get("protocol")))
             for x in lbaasv2_api.pool_list(request, **kwargs) if pfilter(x)]
 
 
@@ -122,3 +124,17 @@ def subnet_field_data(request):
     transform_func = lambda x: (x.get("id"), "{0} - {1}".format(x.get("name"), x.get("cidr")))
     return sorted([transform_func(x) for x in neutron_api.subnet_list(request)],
                   key=lambda x: x[0])
+
+
+@memoized.memoized_method
+def certificate_field_data(request, include_create=True):
+    transform_func = lambda x: (x.get("id"), "{0}".format(x.get("name")))
+    # sort by the name, not the value.
+    sort_func = lambda x: x[1]
+    initial = ("_create", "Create a new certificate")
+    choices = [transform_func(x) for x in certificate_api.list_certificates(request)]
+    import pdb
+    pdb.set_trace()
+    if include_create:
+        choices.insert(0, initial)
+    return sorted([x for x in choices], key=sort_func)
