@@ -133,8 +133,6 @@ def certificate_field_data(request, include_create=True):
     sort_func = lambda x: x[1]
     initial = ("_create", "Create a new certificate")
     choices = [transform_func(x) for x in certificate_api.list_certificates(request)]
-    import pdb
-    pdb.set_trace()
     if include_create:
         choices.insert(0, initial)
     return sorted([x for x in choices], key=sort_func)

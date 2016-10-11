@@ -82,16 +82,13 @@ def get_monitor_body(context, pool_id=None):
         "type": str(context.get("monitor_type", "")).upper(),
         "delay": context.get("delay"),
         "timeout": context.get("timeout"),
-        "http_method": context.get("http_method"),
-        "url_path": context.get("url_path"),
-        "expected_codes": context.get("expected_codes"),
         "max_retries": context.get("max_retries"),
         "admin_state_up": or_default("admin_state_up")
     }}
 
     if "HTTP" in body["healthmonitor"].get("type", "").upper():
-        body["healthmonitor"]["http_method"] = context.get("http_method"),
-        body["healthmonitor"]["url_path"] = context.get("url_path"),
+        body["healthmonitor"]["http_method"] = context.get("http_method")
+        body["healthmonitor"]["url_path"] = context.get("url_path")
         body["healthmonitor"]["expected_codes"] = context.get("expected_codes", [200, 201, 202])
 
     return body
@@ -120,4 +117,10 @@ def get_listener_name_from_context(context):
 
 def get_pool_name_from_context(context):
     # TODO(mdurrant) - Pools will need to "key" to their parents.
-    return context.get("name", str(uuid.uuid4()))
+    return context.get("name") or str(uuid.uuid4())
+
+
+def get_cert_body_from_context(context):
+    rv = {}
+    rv.update(context)
+    return {"a10_certificate": rv}

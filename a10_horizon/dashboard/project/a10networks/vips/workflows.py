@@ -386,6 +386,8 @@ class CreateListenerWorkflow(workflows.Workflow):
     def handle(self, request, context):
         try:
             body = from_ctx.get_listener_body_from_context(context)
+            cert_body = from_ctx.get_cert_body_from_context(context)
+
             lbaasv2.create_listener(request, body)
             return True
         except Exception as ex:
