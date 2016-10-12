@@ -323,13 +323,75 @@ class CreateCertificateAction(workflows.Action):
         help_text = _(
             "Specify data for the new certificate..")
 
-class SpecifyCertificateAction(CreateCertificateAction):
+class SpecifyCertificateAction(workflows.Action):
     """
         Specify an existing certificate or create a new one.
     """
+
+    def _random_name(self):
+        import random
+        chars = []
+        for n in range(1, 16):
+            chars.append(chr(random.randint(65, 90)))
+        return "".join(chars)
+
+
+    def _populate_debug_defaults(self):
+        dev_debug = horizon_conf.HORIZON_CONFIG.get("debug")
+
+        if dev_debug:
+            self.fields["cert_name"].initial = self._random_name()
+            self.fields["cert_data"].initial = CERT_DATA
+            self.fields["key_data"].initial = KEY_DATA
+            self.fields["password"].initial = ""
+
+
+    def textarea_size(rows=10, cols=25):
+        """
+            Returns default style attributes for text inputs
+            Makes code cleaner by not having these littered everywhere
+        """
+        return {
+            "cols": cols,
+            "rows": rows
+        }
+
+
+    def hide_create_controls(title, merge_attrs={}):
+        """
+            Returns attributes necessary for hiding/showing
+            certificate controls dependent on the choice selected.
+        """
+        rv = merge_attrs
+
+        rv.update({
+            "class": "switched",
+            "data-switch-on": "certificate_id",
+            "data-certificate_id-_create": title,
+        })
+
+        return rv
+
     certificate_id = forms.ChoiceField(label=_("Select an existing certificate"),
                                        widget=forms.Select(
                                         attrs=ui_helpers.switchable_field("certificate_id")))
+
+    cert_name = forms.CharField(label=_("Name"),
+                                help_text="Specify a name for the certificate data",
+                                widget=forms.Textarea(attrs=hide_create_controls("Name", textarea_size(rows=1))))
+    cert_data = forms.CharField(label=_("Certificate Data"), required=False,
+                                widget=forms.Textarea(
+                                    attrs=textarea_size()),
+                                min_length=1, max_length=8000)
+    key_data = forms.CharField(label=_("Key Data"), required=False,
+                               widget=forms.Textarea(attrs=textarea_size()),
+                               min_length=1, max_length=8000)
+    intermediate_data = forms.CharField(label=_("Intermediate Data"), required=False,
+                                        widget=forms.Textarea(
+                                            attrs=textarea_size()),
+                                        min_length=1, max_length=8000)
+    password = forms.CharField(widget=forms.PasswordInput(render_value=False), required=False)
+
 
     def __init__(self, request, context, *args, **kwargs):
         super(SpecifyCertificateAction, self).__init__(request, context, *args, **kwargs)
@@ -350,20 +412,6 @@ class SpecifyCertificateAction(CreateCertificateAction):
         return "".join(chars)
 
 
-    def hide_create_controls(title, merge_attrs={}):
-        """
-            Returns attributes necessary for hiding/showing
-            certificate controls dependent on the choice selected.
-        """
-        rv = merge_attrs
-
-        rv.update({
-            "class": "switched",
-            "data-switch-on": "certificate_id",
-            "data-certificate_id-_create": title,
-        })
-
-        return rv
 
     def switched_field(data_slug, title_mappings):
         """
@@ -464,15 +512,7 @@ class CreateListenerStep(workflows.Step):
     action_class = CreateListenerAction
     # TODO(mdurrant): Add SSL data
     # TODO(mdurrant): Support all A10 protocols
-    contributes = ("loadbalancer_id", "name", "protocol", "protocol_port", "use_ssl")
-    connections = {
-        "use_ssl": ["self.show_ssl"]
-    }
-
-    def show_ssl(self, request, context):
-        pass
-        # if context.get("use_ssl", False):
-        #     self.before = CreateCertificateStep
+    contributes = ("loadbalancer_id", "name", "protocol", "protocol_port")
 
     def prepare_action_context(self, request, context):
         super(CreateListenerStep, self).prepare_action_context(request, context)
@@ -514,14 +554,13 @@ class CreateHealthMonitorStep(workflows.Step):
 
 class CreateCertificateStep(workflows.Step):
     action_class = CreateCertificateAction
-    contributes = ("cert_data", "key_data", "intermediate_data", "password")
+    contributes = ("cert_name", "cert_data", "key_data", "intermediate_data", "password")
     # depends_on = ("use_ssl", )
 
 
 class SpecifyCertificateStep(workflows.Step):
     action_class = SpecifyCertificateAction
     contributes = ("certificate_id", "cert_data", "key_data", "intermediate_data", "password")
-    # depends_on = ("use_ssl", )
 
 
 class CreateLoadBalancerWorkflow(workflows.Workflow):
@@ -545,7 +584,7 @@ class CreateLoadBalancerWorkflow(workflows.Workflow):
 class CreateListenerWorkflow(workflows.Workflow):
     slug = "createlistener"
     name = _("Create Listener")
-    default_steps = (CreateListenerStep,)
+    default_steps = (CreateListenerStep, SpecifyCertificateStep,)
     success_url = "horizon:project:a10vips:index"
     finalize_button_name = "Create Listener"
 
@@ -555,10 +594,6 @@ class CreateListenerWorkflow(workflows.Workflow):
     def handle(self, request, context):
         try:
             body = from_ctx.get_listener_body_from_context(context)
-
-            use_ssl = context.get("use_ssl")
-            if use_ssl:
-                pass
             lbaasv2.create_listener(request, body)
             return True
         except Exception as ex:

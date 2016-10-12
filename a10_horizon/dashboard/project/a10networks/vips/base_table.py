@@ -149,15 +149,17 @@ class LoadbalancerTableBase(tables.DataTable):
 
 class CertificateTableBase(tables.DataTable):
     id = tables.Column("id", verbose_name=_("ID"), hidden=True)
-    tenant_id = tables.Column("tenant_id", verbose_name=_("Tenant ID"), hidden=True)
     name = tables.Column("name", verbose_name=_("Name"))
     description = tables.Column("description", verbose_name=_("Description"))
+    cert_data = tables.Column("cert_data", verbose_name=_("Certificate Data"), hidden=True)
+    key_data = tables.Column("key_data", verbose_name=_("Key Data"), hidden=True)
+    intermediate_data = tables.Column("intermediate_data", verbose_name=_("Intermediate Data"), hidden=True)
 
     def get_object_id(self, datum):
         return datum.get("id")
 
     class Meta(object):
         name = "certificatetable"
-        verbose_name = _("Certificate")
+        verbose_name = "certificate"
         table_action = tuple()
         row_actions = tuple()

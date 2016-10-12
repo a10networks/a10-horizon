@@ -258,7 +258,7 @@ class UpdateMemberView(forms.views.ModalFormView):
     page_title = name
 
     def get_context_data(self, **kwargs):
-        context = super(UpdatePoolView, self).get_context_data(**kwargs)
+        context = super(UpdateMemberView, self).get_context_data(**kwargs)
         return context
 
     @memoized.memoized_method
@@ -276,21 +276,8 @@ class UpdateMemberView(forms.views.ModalFormView):
 
     def get_initial(self):
         rv = self._get_object()
-        if rv is not None:
-            rv = self.flatten(rv)
         return rv
 
-    def flatten(self, obj):
-        sp = obj.get("session_persistence") or {}
-
-        return {
-            "id": obj.get("id"),
-            "name": obj.get("name"),
-            "description": obj.get("description"),
-            "lb_algorithm": obj.get("lb_algorithm"),
-            "session_persistence": sp.get("type", "").lower(),
-            "cookie_name": sp.get("cookie_name", ""),
-        }
 
 
 class UpdateCertificateView(forms.views.ModalFormView):
@@ -303,23 +290,36 @@ class UpdateCertificateView(forms.views.ModalFormView):
 
     def get_context_data(self, **kwargs):
         context = super(UpdateCertificateView, self).get_context_data(**kwargs)
+        self.context = context
         return context
+
 
     @memoized.memoized_method
     def _get_object(self, *args, **kwargs):
-        id = self.kwargs['id']
-        self.submit_url = reverse_lazy(URL_PREFIX + "editcertificate",
-                                       kwargs={"id": id})
+        import pdb; pdb.set_trace()
+        id = None
+        # Why this works backwards... I need to find out.
+        if "GET" in self.request.method:
+            id = str(self.kwargs.get("id")) or None
+        else:
+            id = self.request._get_post().get("id")
         if id:
-            try:
-                return certs_api.get_certificate(self.request, id)
-            except Exception as ex:
-                redirect = self.success_url
-                msg = _("Unable to retrieve Certificate: %s") % ex
-                exceptions.handle(self.request, msg, redirect=redirect)
+            self.submit_url = reverse_lazy(URL_PREFIX + "editcertificate",
+                                       kwargs={"id": id})
+        else:
+            self.submit_url = reverse_lazy(URL_PREFIX + "editcertificate")
+        try:
+            return certs_api.get_certificate(self.request, id)
+        except Exception as ex:
+            LOG.exception(ex)
+            redirect = self.success_url
+            msg = _("Unable to retrieve Certificate: %s") % ex
+            exceptions.handle(self.request, msg, redirect=redirect)
+
 
     def get_initial(self):
-        return self._get_object()
+        rv = self._get_object()
+        return rv
 
 
 class CreateVipView(workflows.WorkflowView):

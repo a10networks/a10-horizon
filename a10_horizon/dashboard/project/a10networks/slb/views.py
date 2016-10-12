@@ -230,7 +230,7 @@ class UpdateActionView(forms.views.ModalFormView):
     form_class = project_forms.UpdateAction
     context_object_name = "scaling_action"
     success_url = reverse_lazy(URL_PREFIX + "index")
-    template_name = "action/update.html"
+    template_name = "slb/action/update.html"
 
     def get_context_data(self, **kwargs):
         context = super(UpdateActionView, self).get_context_data(**kwargs)

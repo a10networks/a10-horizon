@@ -68,3 +68,6 @@ target/
 
 # Sublime Text workspace
 *.sublime[-_]workspace
+
+# Backup files. We have VCS for a reason
+*.bak

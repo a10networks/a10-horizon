@@ -56,7 +56,7 @@ class UpdateScalingPolicyLink(tables.LinkAction):
 
     def get_link_url(self, datum):
         base_url = reverse(URL_PREFIX + "updatescalingpolicy",
-                           kwargs={'scaling_policy_id': datum["id"]})
+                           kwargs={'scaling_policy_id': str(datum["id"])})
         return base_url
 
 

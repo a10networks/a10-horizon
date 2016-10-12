@@ -206,6 +206,7 @@ def create_a10_scaling_action(request, **kwargs):
 
 
 def update_a10_scaling_action(request, id, **kwargs):
+    import pdb; pdb.set_trace()
     body = {a10_scaling_group.SCALING_ACTION: kwargs}
     rv = neutronclient(request)\
         .update_a10_scaling_action(id, body=body)\

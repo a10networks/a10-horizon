@@ -207,32 +207,50 @@ class UpdateMemberForm(forms.SelfHandlingForm):
 
 
 class UpdateCertificateForm(forms.SelfHandlingForm):
+    id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
     name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
                            required=True)
-    description = forms.CharField(label=_("Description"), min_length=1,
-                                  max_length=255, required=False)
+    # description = forms.CharField(label=_("Description"), min_length=1,
+    #                               max_length=255, required=False)
+    cert_data = forms.CharField(widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    key_data = forms.CharField(widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    intermediate_data = forms.CharField(widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    password = forms.CharField(widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+
     failure_url = "horizon:project:a10vips:index"
     success_url = "horizon:project:a10vips:index"
 
-    def __init__(self, request, *args, **kwargs):
-        super(UpdateCertificateForm, self).__init__(request, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(UpdateCertificateForm, self).__init__(*args, **kwargs)
+        initial = kwargs.get("initial", {})
+
+        if initial is not None:
+            kwid = initial.get("id")
+            self.submit_url = reverse_lazy("horizon:project:a10vips:editcertificate", {"id": kwid})
+
 
     def handle(self, request, context):
         try:
-            del context["id"]
-
             body = self.body_from_context(context)
-            member = certs_api.update_certificate(request, pool_id, **body)
+            import pdb; pdb.set_trace()
+            id = context["id"]
+            self.kwargs["id"] = id
+            cert = certs_api.update_certificate(**body)
             msg = _("Certificate {0} was successfully updated").format(context["name"])
             messages.success(request, msg)
-            return member
+            return cert
         except Exception as ex:
-            msg = _("Failed to update Member %s") % context["name"]
+            import pdb; pdb.set_trace()
+            msg = _("Failed to update Certificate %s") % context["name"]
             LOG.exception(ex)
             redirect = reverse_lazy(self.failure_url)
             exceptions.handle(request, msg, redirect=redirect)
 
     def body_from_context(self, context):
-        return {"a10_certificate": {
-            "name": context.get("cert_name"),
-            "description": context.get("description")}}
+        return {"a10_certificate":{
+            "name": str(context.get("name")),
+            "description": str(context.get("description")),
+            "cert_data": context.get("cert_data"),
+            "key_data": context.get("key_data"),
+            "id": context.get("id")
+            }}

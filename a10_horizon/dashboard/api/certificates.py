@@ -54,5 +54,7 @@ def create_certificate(request, certificate):
 def delete_certificate(request, id):
     neutronclient(request).delete_a10_certificate(id)
 
-def update_certificate(request, id, certificate):
-    return neutronclient(request).update_a10_certificate(certificate).get("a10_certificate", {})
+def update_certificate(request, id, **kwargs):
+    body = {"a10_certificate": kwargs}
+    rv = neutronclient(request).update_a10_certificate(id, body)#.get("a10_certificate", {})
+    return rv

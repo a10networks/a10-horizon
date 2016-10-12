@@ -284,12 +284,8 @@ class DeleteCertificateLink(tables.DeleteAction):
             count)
 
     def allowed(self, request, obj):
-        # table check
-        if not obj:
-            return True
-        # row check
-        import pdb; pdb.set_trace()
-        return len(obj.get("pools", [])) == 0
+        # check for bindings.
+        return True
 
 
 class MigrateVipAction(tables.LinkAction):
@@ -372,10 +368,12 @@ class UpdateCertificateAction(tables.LinkAction):
     policy_rules = ("network", )
     success_url = "horizon:project:a10vips:index"
 
-    def get_link_url(self, datum):
-        base_url = reverse(URL_PREFIX + self.name,
-                           kwargs={'id': datum["id"]})
-        return base_url
+    # def get_link_url(self, datum):
+    #     import pdb; pdb.set_trace()
+    #     base_url = reverse(URL_PREFIX + self.name,
+    #                        kwargs={'id': datum["id"]})
+    #     self.url = base_url
+    #     return base_url
 
 
 class VipTable(tables.DataTable):
@@ -458,4 +456,4 @@ class ProjectCertificateTable(base.CertificateTableBase):
         name = "projectcertificatetable"
         verbose_name = _("Certificates")
         table_actions = (CreateCertificateLink, DeleteCertificateLink,)
-        row_actions = (UpdateCertificateAction, )
+        row_actions = (UpdateCertificateAction, DeleteCertificateLink, )
