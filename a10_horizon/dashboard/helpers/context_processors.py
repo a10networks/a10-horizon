@@ -136,7 +136,7 @@ def get_cert_body_from_context(context):
     }
 
     rv = {k : context.get(v) for k, v in key_map.iteritems() if v in context}
-    if "certificate_id" in context:
+    if "certificate_id" in context and "_create" not in context.get("certificate_id", "_create"):
         key_map["certificate_id"] = "id"
         cert_id = context["certificate_id"]
         # get cert details from DB

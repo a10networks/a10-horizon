@@ -59,11 +59,11 @@ LISTENER_POOL_PROTOCOLS = {
 
 # TODO(mdurrant) - Remove the debugging crap
 CERT_DATA = """-----BEGIN CERTIFICATE-----
-"MIID1zCCAr+gAwIBAgIJAIUmrLlxfBYIMA0GCSqGSIb3DQEBCwUAMIGBMQswCQYD"
-"VQQGEwJVUzELMAkGA1UECAwCSUQxDjAMBgNVBAcMBUJvaXNlMRwwGgYDVQQKDBNB"
-"MTAgTmV0d29yayBUZXN0aW5nMRUwEwYDVQQLDAxTb2Z0d2FyZSBEZXYxIDAeBgNV"
-"BAMMF3NzbHRlc3QuYTEwbmV0d29ya3MuY29tMB4XDTE2MTAxMTIwMDYyOVoXDTI2"
-"MTAwOTIwMDYyOVowgYExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJJRDEOMAwGA1UE"
+MIID1zCCAr+gAwIBAgIJAIUmrLlxfBYIMA0GCSqGSIb3DQEBCwUAMIGBMQswCQYD
+VQQGEwJVUzELMAkGA1UECAwCSUQxDjAMBgNVBAcMBUJvaXNlMRwwGgYDVQQKDBNB
+MTAgTmV0d29yayBUZXN0aW5nMRUwEwYDVQQLDAxTb2Z0d2FyZSBEZXYxIDAeBgNV
+BAMMF3NzbHRlc3QuYTEwbmV0d29ya3MuY29tMB4XDTE2MTAxMTIwMDYyOVoXDTI2
+MTAwOTIwMDYyOVowgYExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJJRDEOMAwGA1UE
 BwwFQm9pc2UxHDAaBgNVBAoME0ExMCBOZXR3b3JrIFRlc3RpbmcxFTATBgNVBAsM
 DFNvZnR3YXJlIERldjEgMB4GA1UEAwwXc3NsdGVzdC5hMTBuZXR3b3Jrcy5jb20w
 ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDbnD5CiARaiDAjd53AGwtO
@@ -141,8 +141,7 @@ class CreateListenerAction(workflows.Action):
                                        required=True)
     # TODO(mdurrant): Add connection limit
     connection_limit = forms.IntegerField(
-        label=_("Connection Limit"), min_value=-1, max_value=65535)
-    use_ssl = forms.BooleanField(label=_("Use SSL?"), initial=False)
+        label=_("Connection Limit"), min_value=-1, max_value=65535, initial=-1)
 
     def populate_loadbalancer_id_choices(self, request, context):
         return api_helpers.loadbalancer_field_data(request)
@@ -214,6 +213,7 @@ class CreateMemberAction(workflows.Action):
 
 
 class CreateHealthMonitorAction(workflows.Action):
+
     def __init__(self, request, *args, **kwargs):
         super(CreateHealthMonitorAction, self).__init__(request, *args, **kwargs)
         if len(args) > 0:
@@ -264,6 +264,7 @@ class CreateHealthMonitorAction(workflows.Action):
 
 
 class CreateCertificateAction(workflows.Action):
+
     def __init__(self, request, context, *args, **kwargs):
         super(CreateCertificateAction, self).__init__(request, context, *args, **kwargs)
         self._populate_debug_defaults()
@@ -323,6 +324,7 @@ class CreateCertificateAction(workflows.Action):
         help_text = _(
             "Specify data for the new certificate..")
 
+
 class SpecifyCertificateAction(workflows.Action):
     """
         Specify an existing certificate or create a new one.
@@ -335,7 +337,6 @@ class SpecifyCertificateAction(workflows.Action):
             chars.append(chr(random.randint(65, 90)))
         return "".join(chars)
 
-
     def _populate_debug_defaults(self):
         dev_debug = horizon_conf.HORIZON_CONFIG.get("debug")
 
@@ -344,7 +345,6 @@ class SpecifyCertificateAction(workflows.Action):
             self.fields["cert_data"].initial = CERT_DATA
             self.fields["key_data"].initial = KEY_DATA
             self.fields["password"].initial = ""
-
 
     def textarea_size(rows=10, cols=25):
         """
@@ -355,7 +355,6 @@ class SpecifyCertificateAction(workflows.Action):
             "cols": cols,
             "rows": rows
         }
-
 
     def hide_create_controls(title, merge_attrs={}):
         """
@@ -374,30 +373,30 @@ class SpecifyCertificateAction(workflows.Action):
 
     certificate_id = forms.ChoiceField(label=_("Select an existing certificate"),
                                        widget=forms.Select(
-                                        attrs=ui_helpers.switchable_field("certificate_id")))
+        attrs=ui_helpers.switchable_field("certificate_id")))
 
     cert_name = forms.CharField(label=_("Name"),
                                 help_text="Specify a name for the certificate data",
                                 widget=forms.Textarea(attrs=hide_create_controls("Name", textarea_size(rows=1))))
     cert_data = forms.CharField(label=_("Certificate Data"), required=False,
                                 widget=forms.Textarea(
-                                    attrs=textarea_size()),
+                                    attrs=hide_create_controls("Certificate Data", textarea_size())),
                                 min_length=1, max_length=8000)
     key_data = forms.CharField(label=_("Key Data"), required=False,
-                               widget=forms.Textarea(attrs=textarea_size()),
+                               widget=forms.Textarea(attrs=hide_create_controls(
+                                   "Private Key", textarea_size())),
                                min_length=1, max_length=8000)
     intermediate_data = forms.CharField(label=_("Intermediate Data"), required=False,
                                         widget=forms.Textarea(
-                                            attrs=textarea_size()),
+                                            attrs=hide_create_controls("Intermediate Data", textarea_size())),
                                         min_length=1, max_length=8000)
-    password = forms.CharField(widget=forms.PasswordInput(render_value=False), required=False)
-
+    password = forms.CharField(widget=forms.PasswordInput(
+        render_value=False, attrs=hide_create_controls("Password", textarea_size(rows=1))), required=False)
 
     def __init__(self, request, context, *args, **kwargs):
         super(SpecifyCertificateAction, self).__init__(request, context, *args, **kwargs)
         self._set_control_attributes()
         self._populate_debug_defaults()
-
 
     def _random_name(self):
         import random
@@ -408,10 +407,9 @@ class SpecifyCertificateAction(workflows.Action):
         CHAR_UPPER_BOUND = ord('Z')
 
         for n in range(1, random.randint(MIN_CHARS, MAX_CHARS)):
-            chars.append(chr(random.randint(CHAR_LOWER_BOUND, CHAR_UPPER_BOUND) + (32 if bool(random.randint(0,2)) else 0)))
+            chars.append(chr(random.randint(CHAR_LOWER_BOUND, CHAR_UPPER_BOUND) +
+                             (32 if bool(random.randint(0, 2)) else 0)))
         return "".join(chars)
-
-
 
     def switched_field(data_slug, title_mappings):
         """
@@ -555,7 +553,6 @@ class CreateHealthMonitorStep(workflows.Step):
 class CreateCertificateStep(workflows.Step):
     action_class = CreateCertificateAction
     contributes = ("cert_name", "cert_data", "key_data", "intermediate_data", "password")
-    # depends_on = ("use_ssl", )
 
 
 class SpecifyCertificateStep(workflows.Step):
@@ -594,7 +591,11 @@ class CreateListenerWorkflow(workflows.Workflow):
     def handle(self, request, context):
         try:
             body = from_ctx.get_listener_body_from_context(context)
-            lbaasv2.create_listener(request, body)
+            cert_body = from_ctx.get_cert_body_from_context(context)
+
+            listener = lbaasv2.create_listener(request, body)
+            cert = certificates.create_certificate(request, cert_body)
+            binding = certificates.create_binding(request, listener.get("id"), cert.get("id"))
             return True
         except Exception as ex:
             LOG.exception(ex)

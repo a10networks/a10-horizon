@@ -173,8 +173,7 @@ class VipsTab(tabs.TableTab):
 class A10LBTabs(tabs.TabGroup):
     slug = "a10tabs"
 
-    tabs = (VipsTab,
-            ProjectLoadbalancerTab,
+    tabs = (ProjectLoadbalancerTab,
             ProjectListenerTab,
             ProjectPoolTab,
             ProjectHealthMonitorTab,

@@ -33,7 +33,6 @@ from a10_horizon.dashboard.api import certificates as certs_api
 from a10_horizon.dashboard.api import lbaasv2 as lbaasv2_api
 
 
-
 import base_table
 import forms as p_forms
 import tables as p_tables
@@ -197,7 +196,7 @@ class UpdateListenerView(forms.views.ModalFormView):
                 return lbaasv2_api.show_listener(self.request, id)
             except Exception as ex:
                 redirect = self.success_url
-                msg = _("Unable to retrieve VIP: %s") % ex
+                msg = _("Unable to retrieve Listener: %s") % ex
                 exceptions.handle(self.request, msg, redirect=redirect)
 
     def get_initial(self):
@@ -220,8 +219,8 @@ class UpdatePoolView(forms.views.ModalFormView):
     @memoized.memoized_method
     def _get_object(self, *args, **kwargs):
         id = self.kwargs['id']
-        self.submit_url = reverse_lazy(URL_PREFIX + "editpool",
-                                       kwargs={"id": id})
+        self.submit_url = URL_PREFIX + "editpool"
+
         if id:
             try:
                 return lbaasv2_api.pool_get(self.request, id)
@@ -279,7 +278,6 @@ class UpdateMemberView(forms.views.ModalFormView):
         return rv
 
 
-
 class UpdateCertificateView(forms.views.ModalFormView):
     name = _("Update Certificate")
     form_class = p_forms.UpdateCertificateForm
@@ -293,29 +291,27 @@ class UpdateCertificateView(forms.views.ModalFormView):
         self.context = context
         return context
 
-
     @memoized.memoized_method
     def _get_object(self, *args, **kwargs):
-        import pdb; pdb.set_trace()
         id = None
         # Why this works backwards... I need to find out.
-        if "GET" in self.request.method:
-            id = str(self.kwargs.get("id")) or None
-        else:
+        id = self.kwargs.get("id") or None
+        if id is None:
+            id = self.kwargs.get("cert_id")
+        if id is None:
             id = self.request._get_post().get("id")
-        if id:
-            self.submit_url = reverse_lazy(URL_PREFIX + "editcertificate",
-                                       kwargs={"id": id})
-        else:
-            self.submit_url = reverse_lazy(URL_PREFIX + "editcertificate")
+        self.kwargs["cert_id"] = str(id)
+        self.submit_url = reverse_lazy(
+            "horizon:project:a10vips:editcertificate", kwargs={"cert_id": id})
+
+        # = reverse_lazy("horizon:project:a10vips:editcertificate", kwargs={"cert_id": id})
         try:
             return certs_api.get_certificate(self.request, id)
         except Exception as ex:
             LOG.exception(ex)
             redirect = self.success_url
-            msg = _("Unable to retrieve Certificate: %s") % ex
-            exceptions.handle(self.request, msg, redirect=redirect)
-
+            # msg = _("Unable to retrieve Certificate: %s") % ex
+            # exceptions.handle(self.request, msg, redirect=redirect)
 
     def get_initial(self):
         rv = self._get_object()

@@ -368,12 +368,11 @@ class UpdateCertificateAction(tables.LinkAction):
     policy_rules = ("network", )
     success_url = "horizon:project:a10vips:index"
 
-    # def get_link_url(self, datum):
-    #     import pdb; pdb.set_trace()
-    #     base_url = reverse(URL_PREFIX + self.name,
-    #                        kwargs={'id': datum["id"]})
-    #     self.url = base_url
-    #     return base_url
+    def get_link_url(self, datum):
+        base_url = reverse(URL_PREFIX + self.name,
+                           kwargs={'cert_id': datum["id"]})
+        self.submit_url = base_url
+        return base_url
 
 
 class VipTable(tables.DataTable):

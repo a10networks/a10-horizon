@@ -37,6 +37,7 @@ LOG = logging.getLogger(__name__)
 
 
 class UpdateLoadBalancerForm(forms.SelfHandlingForm):
+
     def __init__(self, *args, **kwargs):
         super(UpdateLoadBalancerForm, self).__init__(*args, **kwargs)
         self.submit_url = kwargs.get("id")
@@ -67,6 +68,7 @@ class UpdateLoadBalancerForm(forms.SelfHandlingForm):
 
 
 class UpdateListenerForm(forms.SelfHandlingForm):
+
     def __init__(self, *args, **kwargs):
         super(UpdateListenerForm, self).__init__(*args, **kwargs)
         self.submit_url = kwargs.get("id")
@@ -207,15 +209,20 @@ class UpdateMemberForm(forms.SelfHandlingForm):
 
 
 class UpdateCertificateForm(forms.SelfHandlingForm):
-    id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(
+        attrs={'readonly': 'readonly'}), required=True)
     name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
                            required=True)
     # description = forms.CharField(label=_("Description"), min_length=1,
     #                               max_length=255, required=False)
-    cert_data = forms.CharField(widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
-    key_data = forms.CharField(widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
-    intermediate_data = forms.CharField(widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
-    password = forms.CharField(widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    cert_data = forms.CharField(widget=forms.HiddenInput(
+        attrs={'readonly': 'readonly'}), required=True)
+    key_data = forms.CharField(widget=forms.HiddenInput(
+        attrs={'readonly': 'readonly'}), required=True)
+    intermediate_data = forms.CharField(widget=forms.HiddenInput(
+        attrs={'readonly': 'readonly'}), required=True)
+    password = forms.CharField(widget=forms.HiddenInput(
+        attrs={'readonly': 'readonly'}), required=True)
 
     failure_url = "horizon:project:a10vips:index"
     success_url = "horizon:project:a10vips:index"
@@ -226,13 +233,11 @@ class UpdateCertificateForm(forms.SelfHandlingForm):
 
         if initial is not None:
             kwid = initial.get("id")
-            self.submit_url = reverse_lazy("horizon:project:a10vips:editcertificate", {"id": kwid})
-
+            self.submit_url = kwid
 
     def handle(self, request, context):
         try:
             body = self.body_from_context(context)
-            import pdb; pdb.set_trace()
             id = context["id"]
             self.kwargs["id"] = id
             cert = certs_api.update_certificate(**body)
@@ -240,17 +245,16 @@ class UpdateCertificateForm(forms.SelfHandlingForm):
             messages.success(request, msg)
             return cert
         except Exception as ex:
-            import pdb; pdb.set_trace()
             msg = _("Failed to update Certificate %s") % context["name"]
             LOG.exception(ex)
             redirect = reverse_lazy(self.failure_url)
             exceptions.handle(request, msg, redirect=redirect)
 
     def body_from_context(self, context):
-        return {"a10_certificate":{
+        return {"a10_certificate": {
             "name": str(context.get("name")),
             "description": str(context.get("description")),
             "cert_data": context.get("cert_data"),
             "key_data": context.get("key_data"),
             "id": context.get("id")
-            }}
+        }}

@@ -27,6 +27,7 @@ neutronclient = neutron.neutronclient
 CERT_ATTRIBUTE = "a10_certificate"
 CERT_PLURAL = CERT_ATTRIBUTE + "%s" % "s"
 
+
 def list_certificates(request, **kwargs):
     # TODO(mdurrant) Fix this terribadness.
     # 1. kwargs={} should result IN THE SAME RETURN TYPE
@@ -54,7 +55,18 @@ def create_certificate(request, certificate):
 def delete_certificate(request, id):
     neutronclient(request).delete_a10_certificate(id)
 
+
 def update_certificate(request, id, **kwargs):
     body = {"a10_certificate": kwargs}
-    rv = neutronclient(request).update_a10_certificate(id, body)#.get("a10_certificate", {})
+    rv = neutronclient(request).update_a10_certificate(id, body).get("a10_certificate", {})
+    return rv
+
+
+def create_binding(request, listener_id, cert_id):
+    body = {"a10_certificate_binding": {
+        "listener_id": listener_id,
+        "certificate_id": cert_id
+    }}
+    rv = neutronclient(request).create_a10_certificate_binding(
+        body).get("a10_certificate_binding", {})
     return rv

@@ -80,6 +80,6 @@ urlpatterns = patterns("a10_horizon.dashboard.project.a10networks.vips.views",
                        url(r'certificate/create/$',
                            views.CreateCertificateView.as_view(),
                            name="createcertificate"),
-                       url(r'certificate/edit/(?P<id>[^/]*)$',
+                       url(r'certificate/edit/(?P<cert_id>[^/]*)$',
                            views.UpdateCertificateView.as_view(),
                            name="editcertificate"))
