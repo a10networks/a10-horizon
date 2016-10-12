@@ -27,36 +27,42 @@ LOG = logging.getLogger(__name__)
 
 class A10ScalingGroup(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingGroup, self).__init__(apiresource)
 
 
 class A10ScalingGroupMember(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group_member dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingGroupMember, self).__init__(apiresource)
 
 
 class A10ScalingPolicy(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingPolicy, self).__init__(apiresource)
 
 
 class A10ScalingPolicyReaction(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingPolicyReaction, self).__init__(apiresource)
 
 
 class A10ScalingAction(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingAction, self).__init__(apiresource)
 
 
 class A10ScalingAlarm(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingAlarm, self).__init__(apiresource)
 
@@ -206,7 +212,6 @@ def create_a10_scaling_action(request, **kwargs):
 
 
 def update_a10_scaling_action(request, id, **kwargs):
-    import pdb; pdb.set_trace()
     body = {a10_scaling_group.SCALING_ACTION: kwargs}
     rv = neutronclient(request)\
         .update_a10_scaling_action(id, body=body)\

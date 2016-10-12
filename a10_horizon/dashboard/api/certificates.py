@@ -70,3 +70,11 @@ def create_binding(request, listener_id, cert_id):
     rv = neutronclient(request).create_a10_certificate_binding(
         body).get("a10_certificate_binding", {})
     return rv
+
+
+def get_binding(request, id):
+    return neutronclient(request).get_a10_certificate_binding(id)
+
+
+def delete_binding(request, id):
+    return neutronclient(request).delete_a10_certificate_binding(id)
