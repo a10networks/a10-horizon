@@ -91,7 +91,16 @@ class CreateMemberLink(tables.LinkAction):
 class CreateHealthMonitorLink(tables.LinkAction):
     name = "createhealthmonitor"
     verbose_name = _("Create Health Monitor")
-    url = reverse_lazy(URL_PREFIX + "createmonitor")
+    url = URL_PREFIX + "createmonitor"
+    classes = ("ajax-modal",)
+    icon = "plus"
+    policy_rules = ("network", )
+
+
+class CreateCertificateLink(tables.LinkAction):
+    name = "createcertificate"
+    verbose_name = _("Create Certificate")
+    url = URL_PREFIX + "createcertificate"
     classes = ("ajax-modal",)
     icon = "plus"
     policy_rules = ("network", )
@@ -254,6 +263,35 @@ class DeleteHealthMonitorAction(tables.DeleteAction):
         return len(obj.get("pools", [])) == 0
 
 
+class DeleteCertificateLink(tables.DeleteAction):
+    name = "deletecertificate"
+    verbose_name = _("Delete Certificate")
+    redirect_url = reverse_lazy(URL_PREFIX + "index")
+    failure_message = _("Failed to delete Certificate")
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Delete Certificate",
+            u"Delete Certificates",
+            count)
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Scheduled Deletion of Certificate",
+            u"Scheduled Deletion of Certificates",
+            count)
+
+    def allowed(self, request, obj):
+        # table check
+        if not obj:
+            return True
+        # row check
+        import pdb; pdb.set_trace()
+        return len(obj.get("pools", [])) == 0
+
+
 class MigrateVipAction(tables.LinkAction):
     pass
 
@@ -325,6 +363,21 @@ class UpdatePoolAction(tables.LinkAction):
         return base_url
 
 
+class UpdateCertificateAction(tables.LinkAction):
+    name = "editcertificate"
+    verbose_name = _("Edit Certificate")
+    url = URL_PREFIX + "editcertificate"
+    classes = ("ajax-modal", )
+    icon = "plus"
+    policy_rules = ("network", )
+    success_url = "horizon:project:a10vips:index"
+
+    def get_link_url(self, datum):
+        base_url = reverse(URL_PREFIX + self.name,
+                           kwargs={'id': datum["id"]})
+        return base_url
+
+
 class VipTable(tables.DataTable):
     id = tables.Column("id", verbose_name=_("ID"), hidden=True)
     name = tables.Column("name", verbose_name=_("Name"), link=links.link_loadbalancer_detail_by_id)
@@ -346,6 +399,7 @@ class VipTable(tables.DataTable):
 
 
 class OverviewPoolTable(base.PoolTableBase):
+
     class Meta(object):
         name = "overviewpooltable"
         verbose_name = "Pool Overview"
@@ -354,6 +408,7 @@ class OverviewPoolTable(base.PoolTableBase):
 
 
 class ProjectHealthMonitorTable(base.HealthMonitorTableBase):
+
     class Meta(object):
         name = "projecthealthmonitortable"
         verbose_name = _("Health Monitors")
@@ -362,6 +417,7 @@ class ProjectHealthMonitorTable(base.HealthMonitorTableBase):
 
 
 class ProjectMemberTable(base.MemberTableBase):
+
     class Meta(object):
         name = "projectmembertable"
         verbose_name = _("Member Servers")
@@ -370,6 +426,7 @@ class ProjectMemberTable(base.MemberTableBase):
 
 
 class ProjectPoolTable(base.PoolTableBase):
+
     class Meta(object):
         name = "projectpooltable"
         verbose_name = "Pools"
@@ -378,6 +435,7 @@ class ProjectPoolTable(base.PoolTableBase):
 
 
 class ProjectListenerTable(base.ListenerTableBase):
+
     class Meta(object):
         name = "projectlistenertable"
         verbose_name = "Listeners"
@@ -386,8 +444,18 @@ class ProjectListenerTable(base.ListenerTableBase):
 
 
 class ProjectLoadbalancerTable(base.LoadbalancerTableBase):
+
     class Meta(object):
         name = "projectloadbalancertable"
-        verbose_name = "loadbalancers"
+        verbose_name = _("Load Balancers")
         table_actions = (CreateLoadBalancerLink, DeleteLoadBalancerAction, )
         row_actions = (UpdateLoadBalancerAction, DeleteLoadBalancerAction, )
+
+
+class ProjectCertificateTable(base.CertificateTableBase):
+
+    class Meta(object):
+        name = "projectcertificatetable"
+        verbose_name = _("Certificates")
+        table_actions = (CreateCertificateLink, DeleteCertificateLink,)
+        row_actions = (UpdateCertificateAction, )

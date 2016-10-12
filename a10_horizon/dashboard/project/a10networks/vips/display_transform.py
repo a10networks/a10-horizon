@@ -18,9 +18,14 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
-DEFAULT_HM_TRANSFORM = lambda x: "{0}".format(x.get("type"))
 
-HTTP_TRANSFORM = lambda x: "{0} {1}".format(x.get("type"), x.get("http_method"))
+def DEFAULT_HM_TRANSFORM(x):
+    return "{0}".format(x.get("type"))
+
+
+def HTTP_TRANSFORM(x):
+    return "{0} {1}".format(x.get("type"), x.get("http_method"))
+
 
 HM_DISPLAY_TRANSFORMS = {
     "HTTP": HTTP_TRANSFORM,

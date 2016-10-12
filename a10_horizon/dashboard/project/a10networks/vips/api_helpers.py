@@ -26,14 +26,15 @@ import logging
 LOG = logging.getLogger(__name__)
 
 # lbaasv2 api
-try:
-    from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
-except ImportError as ex:
-    LOG.exception(ex)
-    LOG.warning("Could not import lbaasv2 dashboard API")
+# try:
+# except ImportError as ex:
+#     LOG.exception(ex)
+#     LOG.warning("Could not import lbaasv2 dashboard API")
 
 from openstack_dashboard.api import neutron as neutron_api
+from a10_horizon.dashboard.api import lbaasv2
 from a10_horizon.dashboard.api import certificates as certificate_api
+
 
 
 DEFAULT_FILTER = lambda x: True
@@ -43,7 +44,7 @@ DEFAULT_FILTER = lambda x: True
 def loadbalancer_field_data(request, **kwargs):
     return [(x.get("id"),
              "{0} - {1}".format(x.get("name"), x.get("vip_address")))
-            for x in lbaasv2_api.list_loadbalancers(request, **kwargs)]
+            for x in lbaasv2.list_loadbalancers(request, **kwargs)]
 
 
 @memoized.memoized_method
@@ -53,7 +54,7 @@ def listener_field_data(request, pfilter=None, **kwargs):
 
     return [(x.get("id"),
              "{0}".format(x.get("name")))
-            for x in lbaasv2_api.list_listeners(request, **kwargs)
+            for x in lbaasv2.list_listeners(request, **kwargs)
             if pfilter(x)]
 
 
@@ -70,7 +71,7 @@ def listener_protocol_field_data(request, **kwargs):
 def pool_field_data(request, pfilter=DEFAULT_FILTER, **kwargs):
     return [(x.get("id"),
              "{1} - {0}".format(x.get("name"), x.get("protocol")))
-            for x in lbaasv2_api.pool_list(request, **kwargs) if pfilter(x)]
+            for x in lbaasv2.pool_list(request, **kwargs) if pfilter(x)]
 
 
 @memoized.memoized_method

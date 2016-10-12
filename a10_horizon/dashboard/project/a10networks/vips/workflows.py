@@ -17,17 +17,23 @@ import logging
 from django.core.urlresolvers import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
 
+from horizon import conf as horizon_conf
 from horizon import exceptions
 from horizon import forms
 from horizon import workflows
 
-from neutron_lbaas_dashboard.api import lbaasv2
+
 # Yeah, instances in networking - easy way to get subnet data.
 from openstack_dashboard.dashboards.project.instances import utils as instance_utils
+from openstack_dashboard.utils import settings as settings_utils
 
+from a10_horizon.dashboard.api import certificates
+from a10_horizon.dashboard.api import lbaasv2
 from a10_horizon.dashboard.helpers import context_processors as from_ctx
 
 import api_helpers
+from a10_horizon.dashboard.helpers import ui_helpers
+
 
 LOG = logging.getLogger(__name__)
 
@@ -50,6 +56,60 @@ LISTENER_POOL_PROTOCOLS = {
     "HTTPS": ["HTTPS"],
     "TCP": ["HTTP", "HTTPS", "TCP"]
 }
+
+# TODO(mdurrant) - Remove the debugging crap
+CERT_DATA = """-----BEGIN CERTIFICATE-----
+"MIID1zCCAr+gAwIBAgIJAIUmrLlxfBYIMA0GCSqGSIb3DQEBCwUAMIGBMQswCQYD"
+"VQQGEwJVUzELMAkGA1UECAwCSUQxDjAMBgNVBAcMBUJvaXNlMRwwGgYDVQQKDBNB"
+"MTAgTmV0d29yayBUZXN0aW5nMRUwEwYDVQQLDAxTb2Z0d2FyZSBEZXYxIDAeBgNV"
+"BAMMF3NzbHRlc3QuYTEwbmV0d29ya3MuY29tMB4XDTE2MTAxMTIwMDYyOVoXDTI2"
+"MTAwOTIwMDYyOVowgYExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJJRDEOMAwGA1UE"
+BwwFQm9pc2UxHDAaBgNVBAoME0ExMCBOZXR3b3JrIFRlc3RpbmcxFTATBgNVBAsM
+DFNvZnR3YXJlIERldjEgMB4GA1UEAwwXc3NsdGVzdC5hMTBuZXR3b3Jrcy5jb20w
+ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDbnD5CiARaiDAjd53AGwtO
+DG0fbPOldi8/anCyZWA2/lPlbBvSGBZtNjAtG+a6jGQhxlp27K3yheuF0jZeBpFk
+adBMSUQYCYfNeMFn2n8JThO8k1IfAheKxzAzjq454ieAOjTuUkVLHWV74mkfmE7e
+qJWEen3idoJahmofWKLFXB3g/r2vyjVAllka1r37N6YNbO3EPE3SVGdHylQSlXI8
+ajenHgiSf+luhzsfx5/o+cuSUhmFD5i1J0AHdtcgdd+OXR/11dG4fy3oir+8cbaV
+dwaXP65ra5W7b3nOeI4JO1N7Aa1z8Mtbb1J16QRHJT/ekCh+OF5HNrkmXZLD0jRL
+AgMBAAGjUDBOMB0GA1UdDgQWBBRmg1gbMqCOxj5atETfBYp4e/pyLzAfBgNVHSME
+GDAWgBRmg1gbMqCOxj5atETfBYp4e/pyLzAMBgNVHRMEBTADAQH/MA0GCSqGSIb3
+DQEBCwUAA4IBAQA8XsLizv4KiO0PGK+k7zF5xJ9ogVZdkjY+CgXlop0xTq+Kt7n1
++6EPorS7HNYiltC4pr5OjcMhDtKORloV0ATSa5K27dyzYYw6v1cfVOiivixyT6dY
+hm9EZs+gYt8kVo1mAfb0g6zqRJy3gkMVkhsb4DlxPRNcKMX1bLrfisrRfc6yDH6D
+dZBK63BSYh7H8wHh1CE6kBjdNOFDL4nJIRup/mtCZETU7z/FFvnEqaBDkIKVQ4dk
+LyUPKyQcM6tFc6WjHTx/YOuih4gaupzJDCMWjyWrrNxNIaTZziRSuCggLs4b3LQD
+j84tU5/SsueWoIXdCcogq9Szn/UjfJGi9n1s
+-----END CERTIFICATE-----"""
+
+KEY_DATA = """-----BEGIN PRIVATE KEY-----
+MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDbnD5CiARaiDAj
+d53AGwtODG0fbPOldi8/anCyZWA2/lPlbBvSGBZtNjAtG+a6jGQhxlp27K3yheuF
+0jZeBpFkadBMSUQYCYfNeMFn2n8JThO8k1IfAheKxzAzjq454ieAOjTuUkVLHWV7
+4mkfmE7eqJWEen3idoJahmofWKLFXB3g/r2vyjVAllka1r37N6YNbO3EPE3SVGdH
+ylQSlXI8ajenHgiSf+luhzsfx5/o+cuSUhmFD5i1J0AHdtcgdd+OXR/11dG4fy3o
+ir+8cbaVdwaXP65ra5W7b3nOeI4JO1N7Aa1z8Mtbb1J16QRHJT/ekCh+OF5HNrkm
+XZLD0jRLAgMBAAECggEAFUj/f9NPGLc6czWUxJnabqYlrXYR52edDLh0U9YfjTT5
+TLM9vw82nT8zTCv4IPyad+uRuRUXhvoT6dSGEHbygJkA52PyhaHm17Nsi3RR+8Tl
+hNGClB7PyVOlCFo76MBSs8rwdmji7nTa8TbwmW9ZtZsBYuW8bcauu7drcb5ViGtH
+I1mJycZ2RxDvpXvWpRClwfFiJTEpBgxYo8psaFkUFQqht2j3hD7kyuzpxO9xpjsh
+Wl2Eee0p8b2QVmiCT/LgqB8d9Z3VCdew4r2Un99PfO7q4OFcWwJ3s1Y0apQQ914E
+MoTgITBM7COhaVAnKPGa/xvJTqSZ0wEoYI5YXK2EAQKBgQD/U3xhTJGisNdMCsuo
+WSXRmHby9GNp+Ut2PzhbxY5HovDGNauiIlkVFelUQ18XGE0tlYKiFTv15XbKNatB
+qr7uATTrV1f8IWrlUOwhrrTQyJPay6m0MvbfX7Y7uBEi4t1bHaU8/JYR6iYvG2pX
+cuArwmVoStJRedCOmCIYGW106wKBgQDcMKAjgim9OGcVL9J+tHnbchf9xWWJR7r4
+HwQZE2qddMVC7sJnMf0yGLWSUBuIlh+8t9vD31E5GjAN1z4DYs4iHZwH70QDtYSy
+keC9G8QEQk/VZTVdBtnXp+YRj++ol+Y1mkE/2+530A3pcQBEpNfxQpV0VajFkFeF
+aI+X4kHmIQKBgQDjFqzsmT56tdB3eK6UZ93EIlfBVO3KxoiAflAxB2+5dUmy8O9b
+gDM9FsT1RgqgLuQN5AlRAZPX66QQy1UrTaMNapNXsdK2lD5QAP5UIt/9RjiDBFtG
+w4FhQO6DBP5wydhY/vAFYx5ShrA5e6fEaY7KPNcWwF15S9/bw6GnT45TywKBgGrw
+PsYgEE9y1jWm/S9GTaxzdA1u0kpjCP46ag4XrP792FQSi139HEA5We3OdCDY8F8C
+WHx/t/3opxAByn9wfDZ7dO0xmjHG9cSYLrMJiiCbaBR2y/z7N8+SHp3G7xlNdKPx
+3+C42s9bv3XxyLSN7saglN9kPsx8ttT3HE4it+ihAoGBANvIAPjKySNPcbz6eeYE
+pLLzK0l5oRNPGnqOj6N5Njy5IWz/T0MRB1Mh/w0zNk9EQbdhzV5Lm71cuNOZb93W
+5vxpPBxWyAWBjlaPiPxz0AmjKPrXsRekyTsBe8HJ1Bk8/qSY8k0Gk8yKgPm2Je3L
+Rv4a8yRehRRjWFxwExTtwFwh
+-----END PRIVATE KEY-----"""
 
 
 class CreateLbAction(workflows.Action):
@@ -80,6 +140,9 @@ class CreateListenerAction(workflows.Action):
                                        min_value=1, max_value=65535,
                                        required=True)
     # TODO(mdurrant): Add connection limit
+    connection_limit = forms.IntegerField(
+        label=_("Connection Limit"), min_value=-1, max_value=65535)
+    use_ssl = forms.BooleanField(label=_("Use SSL?"), initial=False)
 
     def populate_loadbalancer_id_choices(self, request, context):
         return api_helpers.loadbalancer_field_data(request)
@@ -151,6 +214,11 @@ class CreateMemberAction(workflows.Action):
 
 
 class CreateHealthMonitorAction(workflows.Action):
+    def __init__(self, request, *args, **kwargs):
+        super(CreateHealthMonitorAction, self).__init__(request, *args, **kwargs)
+        if len(args) > 0:
+            self.detail_url = URL_PREFIX + "createmonitor"
+            self.success_url = reverse_lazy(self.detail_url)
 
     def hide_http(title):
         return {
@@ -195,7 +263,26 @@ class CreateHealthMonitorAction(workflows.Action):
         help_text = _("Specify the details for health monitor.")
 
 
-class SpecifyCertificateAction(workflows.Action):
+class CreateCertificateAction(workflows.Action):
+    def __init__(self, request, context, *args, **kwargs):
+        super(CreateCertificateAction, self).__init__(request, context, *args, **kwargs)
+        self._populate_debug_defaults()
+
+    def _random_name(self):
+        import random
+        chars = []
+        for n in range(1, 16):
+            chars.append(chr(random.randint(65, 90)))
+        return "".join(chars)
+
+    def _populate_debug_defaults(self):
+        dev_debug = horizon_conf.HORIZON_CONFIG.get("debug")
+
+        if dev_debug:
+            self.fields["cert_name"].initial = self._random_name()
+            self.fields["cert_data"].initial = CERT_DATA
+            self.fields["key_data"].initial = KEY_DATA
+            self.fields["password"].initial = ""
 
     def textarea_size(rows=10, cols=25):
         """
@@ -206,6 +293,62 @@ class SpecifyCertificateAction(workflows.Action):
             "cols": cols,
             "rows": rows
         }
+
+    """
+        Specify an existing certificate or create a new one.
+    """
+    # TODO(mdurrant) Create a validator for cert data using cryptography lib
+    cert_name = forms.CharField(label=_("Name"),
+                                help_text="Specify a name for the certificate data",
+                                widget=forms.Textarea(attrs=textarea_size(rows=1)))
+    cert_data = forms.CharField(label=_("Certificate Data"), required=False,
+                                widget=forms.Textarea(
+                                    attrs=textarea_size()),
+                                min_length=1, max_length=8000)
+    key_data = forms.CharField(label=_("Key Data"), required=False,
+                               widget=forms.Textarea(attrs=textarea_size()),
+                               min_length=1, max_length=8000)
+    intermediate_data = forms.CharField(label=_("Intermediate Data"), required=False,
+                                        widget=forms.Textarea(
+                                            attrs=textarea_size()),
+                                        min_length=1, max_length=8000)
+    password = forms.CharField(widget=forms.PasswordInput(render_value=False), required=False)
+
+    class Meta(object):
+        name = _("TLS/SSL Certificate Data")
+        # TODO(mdurrant) = Add certificate-specific permissions.
+        # Delineation of who can/cannot manage certs is critical due to
+        # the sensitive nature of the data
+        permissions = ("openstack.services.network", )
+        help_text = _(
+            "Specify data for the new certificate..")
+
+class SpecifyCertificateAction(CreateCertificateAction):
+    """
+        Specify an existing certificate or create a new one.
+    """
+    certificate_id = forms.ChoiceField(label=_("Select an existing certificate"),
+                                       widget=forms.Select(
+                                        attrs=ui_helpers.switchable_field("certificate_id")))
+
+    def __init__(self, request, context, *args, **kwargs):
+        super(SpecifyCertificateAction, self).__init__(request, context, *args, **kwargs)
+        self._set_control_attributes()
+        self._populate_debug_defaults()
+
+
+    def _random_name(self):
+        import random
+        chars = []
+        MAX_CHARS = 16
+        MIN_CHARS = 8
+        CHAR_LOWER_BOUND = ord('A')
+        CHAR_UPPER_BOUND = ord('Z')
+
+        for n in range(1, random.randint(MIN_CHARS, MAX_CHARS)):
+            chars.append(chr(random.randint(CHAR_LOWER_BOUND, CHAR_UPPER_BOUND) + (32 if bool(random.randint(0,2)) else 0)))
+        return "".join(chars)
+
 
     def hide_create_controls(title, merge_attrs={}):
         """
@@ -222,29 +365,33 @@ class SpecifyCertificateAction(workflows.Action):
 
         return rv
 
-    """
-        Specify an existing certificate or create a new one.
-    """
-    certificate_id = forms.ChoiceField(label=_("Select an existing certificate"),
-                                       widget=forms.Select(
-        attrs={"class": "switchable", "data-slug": "certificate_id"}))
-    # TODO(mdurrant) Create a validator for cert data using cryptography lib
-    cert_name = forms.CharField(label=_("Name"),
-                                help_text="Specify a name for the certificate data",
-                                widget=forms.Textarea(attrs=hide_create_controls("Name", textarea_size(rows=1))))
-    cert_data = forms.CharField(label=_("Certificate Data"),
-                                widget=forms.Textarea(
-                                    attrs=hide_create_controls("Certificate Data", textarea_size())),
-                                min_length=1, max_length=8000)
-    key_data = forms.CharField(label=_("Key Data"),
-                               widget=forms.Textarea(attrs=hide_create_controls("Key Data")),
-                               min_length=1, max_length=8000)
-    intermediate_data = forms.CharField(label=_("Intermediate Data"),
-                                        widget=forms.Textarea(
-                                            attrs=hide_create_controls("Intermediate Data")),
-                                        min_length=1, max_length=8000)
-    password = forms.CharField(widget=forms.PasswordInput(
-        render_value=False, attrs=hide_create_controls("Password")), required=False)
+    def switched_field(data_slug, title_mappings):
+        """
+            Beginning of abstracting the above.
+        """
+        rv = {
+            "class": "switched",
+            "data-switch-on": data_slug
+        }
+
+        for k, v in title_mappings.iteritems():
+            attr_key = "data-{0}-{1}".format(data_slug, k)
+            attr_val = v
+            rv[attr_key] = attr_val
+
+    def _set_control_attributes(self):
+        # name: title
+        controls = {
+            "cert_name": "Name",
+            "cert_data": "Certificate Data",
+            "key_data": "Key Data",
+            "intermediate_data": "Intermediate Data",
+            "password": "Password"
+        }
+
+        for k, v in controls.iteritems():
+            f = self.fields.get(k)
+            f.label = _(k)
 
     def populate_certificate_id_choices(self, request, context):
         return api_helpers.certificate_field_data(request)
@@ -255,7 +402,8 @@ class SpecifyCertificateAction(workflows.Action):
         # Delineation of who can/cannot manage certs is critical due to
         # the sensitive nature of the data
         permissions = ("openstack.services.network", )
-        help_text = _("Choose an existing certificate or specify certificate data for this listener.")
+        help_text = _(
+            "Choose an existing certificate or specify certificate data for this listener.")
 
 
 class CreateVipAction(workflows.Action):
@@ -316,7 +464,18 @@ class CreateListenerStep(workflows.Step):
     action_class = CreateListenerAction
     # TODO(mdurrant): Add SSL data
     # TODO(mdurrant): Support all A10 protocols
-    contributes = ("loadbalancer_id", "name", "protocol", "protocol_port")
+    contributes = ("loadbalancer_id", "name", "protocol", "protocol_port", "use_ssl")
+    connections = {
+        "use_ssl": ["self.show_ssl"]
+    }
+
+    def show_ssl(self, request, context):
+        pass
+        # if context.get("use_ssl", False):
+        #     self.before = CreateCertificateStep
+
+    def prepare_action_context(self, request, context):
+        super(CreateListenerStep, self).prepare_action_context(request, context)
 
 
 class CreateVipStep(workflows.Step):
@@ -354,8 +513,15 @@ class CreateHealthMonitorStep(workflows.Step):
 
 
 class CreateCertificateStep(workflows.Step):
+    action_class = CreateCertificateAction
+    contributes = ("cert_data", "key_data", "intermediate_data", "password")
+    # depends_on = ("use_ssl", )
+
+
+class SpecifyCertificateStep(workflows.Step):
     action_class = SpecifyCertificateAction
     contributes = ("certificate_id", "cert_data", "key_data", "intermediate_data", "password")
+    # depends_on = ("use_ssl", )
 
 
 class CreateLoadBalancerWorkflow(workflows.Workflow):
@@ -379,15 +545,20 @@ class CreateLoadBalancerWorkflow(workflows.Workflow):
 class CreateListenerWorkflow(workflows.Workflow):
     slug = "createlistener"
     name = _("Create Listener")
-    default_steps = (CreateListenerStep, CreateCertificateStep, )
+    default_steps = (CreateListenerStep,)
     success_url = "horizon:project:a10vips:index"
     finalize_button_name = "Create Listener"
+
+    def get_initial(self):
+        return super(CreateListenerWorkflow, self).get_initial()
 
     def handle(self, request, context):
         try:
             body = from_ctx.get_listener_body_from_context(context)
-            cert_body = from_ctx.get_cert_body_from_context(context)
 
+            use_ssl = context.get("use_ssl")
+            if use_ssl:
+                pass
             lbaasv2.create_listener(request, body)
             return True
         except Exception as ex:
@@ -464,7 +635,7 @@ class CreateHealthMonitorWorkflow(workflows.Workflow):
     slug = "createmonitor"
     name = _("Create Health Monitor")
     default_steps = (CreateHealthMonitorStep,)
-    success_url = SUCCESS_URL
+    success_url = URL_PREFIX + "createmonitor"
     finalize_button_name = "Create Health Monitor"
 
     def handle(self, request, context):
@@ -478,9 +649,29 @@ class CreateHealthMonitorWorkflow(workflows.Workflow):
         return False
 
 
+class CreateCertificateWorkflow(workflows.Workflow):
+    slug = "createcertificate"
+    name = _("Create Certificate")
+    default_steps = (CreateCertificateStep,)
+    success_url = SUCCESS_URL
+    finalize_button_name = "Create Certificate"
+
+    def handle(self, request, context):
+        try:
+            body = from_ctx.get_cert_body_from_context(context)
+            cert = certificates.create_certificate(request, body)
+            return True
+        except Exception as ex:
+            LOG.exception(ex)
+            exceptions.handle(request, _("Could not certificate"))
+        return False
+
+
 class SpecifyCertificateWorkflow(workflows.Workflow):
     slug = "specifycert"
-    name = _("Certificate ")
+    name = _("Specify or Create a Certificate")
+    success_url = SUCCESS_URL
+    finalize_button_name = "Create Certificate"
 
 
 class CreateVipWorkflow(workflows.Workflow):

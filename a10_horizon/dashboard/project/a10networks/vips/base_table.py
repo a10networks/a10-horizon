@@ -71,6 +71,7 @@ class MemberTableBase(tables.DataTable):
 
 
 class PoolTableBase(tables.DataTable):
+
     """
     Read only pool table, no actions.
     """
@@ -98,6 +99,7 @@ class PoolTableBase(tables.DataTable):
 
 
 class ListenerTableBase(tables.DataTable):
+
     """
     Read only listener table, no actions
     """
@@ -142,4 +144,20 @@ class LoadbalancerTableBase(tables.DataTable):
         name = "loadbalancertable"
         verbose_name = "loadbalancertable"
         table_actions = tuple()
+        row_actions = tuple()
+
+
+class CertificateTableBase(tables.DataTable):
+    id = tables.Column("id", verbose_name=_("ID"), hidden=True)
+    tenant_id = tables.Column("tenant_id", verbose_name=_("Tenant ID"), hidden=True)
+    name = tables.Column("name", verbose_name=_("Name"))
+    description = tables.Column("description", verbose_name=_("Description"))
+
+    def get_object_id(self, datum):
+        return datum.get("id")
+
+    class Meta(object):
+        name = "certificatetable"
+        verbose_name = _("Certificate")
+        table_action = tuple()
         row_actions = tuple()

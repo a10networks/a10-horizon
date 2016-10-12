@@ -199,10 +199,11 @@ class TestBase(unittest2.TestCase):
         return {
             "a10_certificate": {
                 "name": "FAKE",
-                "certificate_data": "FAKE_CERT",
+                "cert_data": "FAKE_CERT",
                 "intermediate_data": "FAKE CA",
                 "key_data": "FAKE KEY",
-                "description": "FAKE"
+                "description": "FAKE",
+                "password": "S00perS3cret"
             }
 
         }
@@ -262,9 +263,14 @@ class TestBase(unittest2.TestCase):
         return rv
 
     def _build_certificate_context(self, **kwargs):
-        rv = {}
-        rv.update(kwargs)
-        return rv
+        return {
+            "cert_name": kwargs.get("name"),
+            "cert_data": kwargs.get("cert_data"),
+            "key_data": kwargs.get("key_data"),
+            "intermediate_data": kwargs.get("intermediate_data"),
+            "password": kwargs.get("password"),
+            "description": kwargs.get("description")
+        }
 
 
 class TestContextProcessors(TestBase):

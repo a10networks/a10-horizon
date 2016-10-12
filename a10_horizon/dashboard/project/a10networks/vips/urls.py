@@ -73,6 +73,13 @@ urlpatterns = patterns("a10_horizon.dashboard.project.a10networks.vips.views",
                        url(r'healthmonitor/detail/(?P<id>[^/]+)$',
                            views.MonitorDetailView.as_view(),
                            name="monitordetail"),
-                       url(r'healthmonitor/create$',
+                       url(r'healthmonitor/create/$',
                            views.CreateMonitorView.as_view(),
-                           name="createmonitor"))
+                           name="createmonitor"),
+                       # Certificates
+                       url(r'certificate/create/$',
+                           views.CreateCertificateView.as_view(),
+                           name="createcertificate"),
+                       url(r'certificate/edit/(?P<id>[^/]*)$',
+                           views.UpdateCertificateView.as_view(),
+                           name="editcertificate"))

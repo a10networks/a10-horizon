@@ -46,6 +46,10 @@ def get_listener_body_from_context(context, lb_id=None):
             }}
 
 
+def get_ssl_status_from_context(context):
+    return context.get("use_ssl", False)
+
+
 def get_pool_body_from_context(context, listener_id=None):
     or_default = lambda k: context.get(k, POOL_DEFAULTS.get(k))
     name = get_pool_name_from_context(context)
@@ -122,5 +126,20 @@ def get_pool_name_from_context(context):
 
 def get_cert_body_from_context(context):
     rv = {}
-    rv.update(context)
+    key_map = {
+        "name": "cert_name",
+        "cert_data": "cert_data",
+        "key_data": "key_data",
+        "intermediate_data": "intermediate_data",
+        "password": "password",
+        "description": "description"
+    }
+
+    rv = {k : context.get(v) for k, v in key_map.iteritems() if v in context}
+    if "certificate_id" in context:
+        key_map["certificate_id"] = "id"
+        cert_id = context["certificate_id"]
+        # get cert details from DB
+        rv["id"] = cert_id
+
     return {"a10_certificate": rv}

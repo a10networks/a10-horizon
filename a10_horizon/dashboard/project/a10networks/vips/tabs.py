@@ -24,11 +24,8 @@ LOG = logging.getLogger(__name__)
 
 
 # lbaasv2 api
-try:
-    from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
-except ImportError as ex:
-    LOG.exception(ex)
-    LOG.warning("Could not import lbaasv2 dashboard API")
+from a10_horizon.dashboard.api import lbaasv2 as lbaasv2_api
+from a10_horizon.dashboard.api import certificates as certs_api
 
 import tables as p_tables
 # import a10_horizon.dashboard.api.vips as a10api
@@ -112,6 +109,23 @@ class ProjectLoadbalancerTab(tabs.TableTab):
         return rv
 
 
+class ProjectCertificateTab(tabs.TableTab):
+    table_classes = (p_tables.ProjectCertificateTable,)
+    name = _("Certificates")
+    slug = "a10certificatestab"
+    template_name = TABLE_TEMPLATE
+    preload = False
+
+    def get_projectcertificatetable_data(self):
+        rv = []
+        try:
+            rv = certs_api.list_certificates(self.request)
+        except Exception as ex:
+            LOG.exception(ex)
+            exceptions.handle(self.tab_group.request, _("Unable to retrieve Certificate"))
+        return rv
+
+
 class VipsTab(tabs.TableTab):
     table_classes = (p_tables.VipTable,)
     name = _("VIPs")
@@ -163,7 +177,8 @@ class A10LBTabs(tabs.TabGroup):
             ProjectLoadbalancerTab,
             ProjectListenerTab,
             ProjectPoolTab,
-            ProjectHealthMonitorTab,)
+            ProjectHealthMonitorTab,
+            ProjectCertificateTab,)
 
     sticky = False
     show_single_tab = True

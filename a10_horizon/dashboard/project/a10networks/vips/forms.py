@@ -25,11 +25,9 @@ LOG = logging.getLogger(__name__)
 
 # from openstack_dashboard import api
 # lbaasv2 api
-try:
-    from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
-except ImportError as ex:
-    LOG.exception(ex)
-    LOG.warning("Could not import lbaasv2 dashboard API")
+
+from a10_horizon.dashboard.api import lbaasv2 as lbaasv2_api
+from a10_horizon.dashboard.api import certificates as certs_api
 
 from a10_horizon.dashboard.helpers import context_processors as from_ctx
 import api_helpers
@@ -206,3 +204,35 @@ class UpdateMemberForm(forms.SelfHandlingForm):
         return {"member": {
             "name": context.get("name"),
             "weight": context.get("weight")}}
+
+
+class UpdateCertificateForm(forms.SelfHandlingForm):
+    name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
+                           required=True)
+    description = forms.CharField(label=_("Description"), min_length=1,
+                                  max_length=255, required=False)
+    failure_url = "horizon:project:a10vips:index"
+    success_url = "horizon:project:a10vips:index"
+
+    def __init__(self, request, *args, **kwargs):
+        super(UpdateCertificateForm, self).__init__(request, *args, **kwargs)
+
+    def handle(self, request, context):
+        try:
+            del context["id"]
+
+            body = self.body_from_context(context)
+            member = certs_api.update_certificate(request, pool_id, **body)
+            msg = _("Certificate {0} was successfully updated").format(context["name"])
+            messages.success(request, msg)
+            return member
+        except Exception as ex:
+            msg = _("Failed to update Member %s") % context["name"]
+            LOG.exception(ex)
+            redirect = reverse_lazy(self.failure_url)
+            exceptions.handle(request, msg, redirect=redirect)
+
+    def body_from_context(self, context):
+        return {"a10_certificate": {
+            "name": context.get("cert_name"),
+            "description": context.get("description")}}

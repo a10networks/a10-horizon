@@ -29,14 +29,10 @@ from horizon.utils import memoized
 
 LOG = logging.getLogger(__name__)
 
+from a10_horizon.dashboard.api import certificates as certs_api
+from a10_horizon.dashboard.api import lbaasv2 as lbaasv2_api
 
-# TODO(mdurrant) move this into a module that exposes lbaasv2 and raises an exception if not
-# lbaasv2 api
-try:
-    from neutron_lbaas_dashboard.api import lbaasv2 as lbaasv2_api
-except ImportError as ex:
-    LOG.exception(ex)
-    LOG.warning("Could not import lbaasv2 dashboard API")
+
 
 import base_table
 import forms as p_forms
@@ -116,7 +112,13 @@ class IndexView(tabs.TabView):
             ACTION: lbaasv2_api.healthmonitor_delete,
             NOUN: "Health Monitor",
             PLURAL: "Health Monitors"
+        },
+        "certificate": {
+            ACTION: certs_api.delete_certificate,
+            NOUN: "Certificate",
+            PLURAL: "Certificates"
         }
+
     }
 
     def post(self, request, *args, **kwargs):
@@ -291,6 +293,35 @@ class UpdateMemberView(forms.views.ModalFormView):
         }
 
 
+class UpdateCertificateView(forms.views.ModalFormView):
+    name = _("Update Certificate")
+    form_class = p_forms.UpdateCertificateForm
+    context_object_name = "certificate"
+    success_url = reverse_lazy(SUCCESS_URL)
+    template_name = "lb/certs/update.html"
+    page_title = name
+
+    def get_context_data(self, **kwargs):
+        context = super(UpdateCertificateView, self).get_context_data(**kwargs)
+        return context
+
+    @memoized.memoized_method
+    def _get_object(self, *args, **kwargs):
+        id = self.kwargs['id']
+        self.submit_url = reverse_lazy(URL_PREFIX + "editcertificate",
+                                       kwargs={"id": id})
+        if id:
+            try:
+                return certs_api.get_certificate(self.request, id)
+            except Exception as ex:
+                redirect = self.success_url
+                msg = _("Unable to retrieve Certificate: %s") % ex
+                exceptions.handle(self.request, msg, redirect=redirect)
+
+    def get_initial(self):
+        return self._get_object()
+
+
 class CreateVipView(workflows.WorkflowView):
     name = _("Create VIP")
     workflow_class = p_workflows.CreateVipWorkflow
@@ -333,7 +364,14 @@ class CreateMemberView(workflows.WorkflowView):
 class CreateMonitorView(workflows.WorkflowView):
     name = _("Create Health Monitor")
     workflow_class = p_workflows.CreateHealthMonitorWorkflow
+    submit_url = reverse_lazy(URL_PREFIX + "createmonitor")
+
+
+class CreateCertificateView(workflows.WorkflowView):
+    name = _("Create Certificate")
+    workflow_class = p_workflows.CreateCertificateWorkflow
     success_url = reverse_lazy(SUCCESS_URL)
+    submit_url = reverse_lazy(URL_PREFIX + "createcertificate")
 
 
 class ListenerTableDataSourceMixin(object):

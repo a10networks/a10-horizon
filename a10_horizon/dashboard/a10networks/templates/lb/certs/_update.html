@@ -4,14 +4,14 @@
 
 {% extends "horizon/common/_modal_form.html" %}
 {% load i18n %}
-{% block form_id %}editmonitor{% endblock %}
+{% block form_id %}editcertificate{% endblock %}
 
 {% block form_action %}
-{% url 'horizon:project:a10vips:editmonitor' id=id %}
+{% url 'horizon:project:a10vips:editcertificate' id=id %}
 {% endblock %}
 
 {% block modal-body-right %}
   <h3>{% trans "Description:" %}</h3>
-<p>{% trans "You may update the editable properties of the health monitor here." %}</p>
+  <p>{% trans "You may update the editable properties of the certificate here." %}</p>
 
 {% endblock %}
