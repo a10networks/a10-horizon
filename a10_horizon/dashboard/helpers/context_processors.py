@@ -105,10 +105,6 @@ def populate_session_persistence_from_context(context, pool):
     if str(sp).upper() != "NONE":
         sp_body["type"] = str(sp).upper()
 
-        if sp_body["type"] in ["APP_COOKIE"]:
-            cookie_name = context.get("cookie_name")
-            sp_body["cookie_name"] = cookie_name
-
     pool["pool"]["session_persistence"] = sp_body
 
     return pool
@@ -135,7 +131,7 @@ def get_cert_body_from_context(context):
         "description": "description"
     }
 
-    rv = {k : context.get(v) for k, v in key_map.iteritems() if v in context}
+    rv = {k: context.get(v) for k, v in key_map.iteritems() if v in context}
     if "certificate_id" in context and "_create" not in context.get("certificate_id", "_create"):
         key_map["certificate_id"] = "id"
         cert_id = context["certificate_id"]

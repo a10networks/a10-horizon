@@ -35,6 +35,14 @@ def name_link(datum):
     return reverse_lazy("")
 
 
+def allow_pool_delete(row):
+    return len(row.get("members")) == 0 and not row.get("healthmonitor_id")
+
+
+def allow_healthmonitor_delete(row):
+    return len(row.get("pools", [])) > 0
+
+
 class CreateVipLink(tables.LinkAction):
     name = "createvip"
     verbose_name = _("Create VIP")
@@ -207,7 +215,12 @@ class DeletePoolAction(tables.DeleteAction):
 
     def allowed(self, request, obj):
         if obj:
-            return len(obj.get("members")) == 0 and not obj.get("healthmonitor_id")
+            # Check the individual element
+            return allow_pool_delete(obj)
+        else:
+            # This is checking the table action - if NOTHING is deletable, disable.
+            return any(filter(lambda x: allow_pool_delete(x.datum), self.table.get_rows()))
+
         return True
 
 
@@ -257,10 +270,9 @@ class DeleteHealthMonitorAction(tables.DeleteAction):
 
     def allowed(self, request, obj):
         # table check
-        if not obj:
-            return True
-        # row check
-        return len(obj.get("pools", [])) == 0
+        return allow_healthmonitor_delete(obj) if obj else any(
+            filter(lambda x: allow_healthmonitor_delete(x.datum),
+                   self.table.get_rows()))
 
 
 class DeleteCertificateLink(tables.DeleteAction):
@@ -406,6 +418,10 @@ class OverviewPoolTable(base.PoolTableBase):
 
 class ProjectHealthMonitorTable(base.HealthMonitorTableBase):
 
+    def set_multiselect_column_visibility(self, visible):
+        allowed = any(filter(lambda x: allow_healthmonitor_delete(x.datum), self.get_rows()))
+        return super(ProjectHealthMonitorTable, self).set_multiselect_column_visibility(visible=allowed)
+
     class Meta(object):
         name = "projecthealthmonitortable"
         verbose_name = _("Health Monitors")
@@ -423,6 +439,10 @@ class ProjectMemberTable(base.MemberTableBase):
 
 
 class ProjectPoolTable(base.PoolTableBase):
+
+    def set_multiselect_column_visibility(self, visible):
+        allowed = any(filter(lambda x: allow_pool_delete(x.datum), self.get_rows()))
+        return super(ProjectPoolTable, self).set_multiselect_column_visibility(visible=allowed)
 
     class Meta(object):
         name = "projectpooltable"

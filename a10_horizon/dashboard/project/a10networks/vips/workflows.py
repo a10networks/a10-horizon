@@ -194,6 +194,7 @@ class CreateMemberAction(workflows.Action):
 
     def __init__(self, request, *args, **kwargs):
         super(CreateMemberAction, self).__init__(request, *args, **kwargs)
+        # TODO(mdurrant) Get this of this nonsense.
         if len(args) > 0:
             pool_id = args[0].get("pool_id")
             self.detail_url = URL_PREFIX + "createmember"
@@ -482,12 +483,6 @@ class CreateSessionPersistenceAction(workflows.Action):
                                                    "data-slug": "session_persistence"}),
                                             required=True)
     cookie_name = forms.CharField(label=_("Cookie Name"), min_length=1, max_length=255,
-                                  widget=forms.TextInput(
-                                  attrs={
-                                      "class": "switched",
-                                      "data-switch-on": "session_persistence",
-                                      "data-session_persistence-app_cookie": _("App Cookie Name")
-                                  }),
                                   required=False)
 
     def populate_session_persistence_choices(self, request, context):

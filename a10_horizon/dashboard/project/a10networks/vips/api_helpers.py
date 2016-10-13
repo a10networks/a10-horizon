@@ -36,7 +36,6 @@ from a10_horizon.dashboard.api import lbaasv2
 from a10_horizon.dashboard.api import certificates as certificate_api
 
 
-
 DEFAULT_FILTER = lambda x: True
 
 
@@ -101,8 +100,7 @@ def session_persistence_field_data(request, lowercase_values=True):
 
     return [("NONE", "None"),
             (value_transform("source_ip"), "Source IP"),
-            (value_transform("http_cookie"), "HTTP Cookie"),
-            (value_transform("app_cookie"), "App Cookie")]
+            (value_transform("http_cookie"), "HTTP Cookie")]
 
 
 @memoized.memoized_method
