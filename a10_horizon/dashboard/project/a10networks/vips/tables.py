@@ -34,13 +34,19 @@ SUCCESS_URL = URL_PREFIX + "index"
 def name_link(datum):
     return reverse_lazy("")
 
+# obj_type:
+allow_delete_functions = {
+    "pool": lambda row: len(row.get("members")) == 0 and not row.get("healthmonitor_id"),
+    "healthmonitor": lambda row: len(row.get("pools", [])) > 0,
+    "loadbalancer": lambda row: True,
+    "listener": lambda row: True,
+    "member": lambda row: True
+}
 
-def allow_pool_delete(row):
-    return len(row.get("members")) == 0 and not row.get("healthmonitor_id")
 
-
-def allow_healthmonitor_delete(row):
-    return len(row.get("pools", [])) > 0
+def allow_delete(obj_type, obj, default=True):
+    allow_method = allow_delete_functions.get(obj_type)
+    return allow_method(obj) if allow_method else default
 
 
 class CreateVipLink(tables.LinkAction):
@@ -216,10 +222,10 @@ class DeletePoolAction(tables.DeleteAction):
     def allowed(self, request, obj):
         if obj:
             # Check the individual element
-            return allow_pool_delete(obj)
+            return allow_delete("pool", obj)
         else:
             # This is checking the table action - if NOTHING is deletable, disable.
-            return any(filter(lambda x: allow_pool_delete(x.datum), self.table.get_rows()))
+            return any(filter(lambda x: allow_delete("pool", x.datum), self.table.get_rows()))
 
         return True
 
@@ -270,8 +276,8 @@ class DeleteHealthMonitorAction(tables.DeleteAction):
 
     def allowed(self, request, obj):
         # table check
-        return allow_healthmonitor_delete(obj) if obj else any(
-            filter(lambda x: allow_healthmonitor_delete(x.datum),
+        return allow_delete("healthmonitor", obj) if obj else any(
+            filter(lambda x: allow_delete("health_monitor", x.datum),
                    self.table.get_rows()))
 
 
@@ -419,7 +425,7 @@ class OverviewPoolTable(base.PoolTableBase):
 class ProjectHealthMonitorTable(base.HealthMonitorTableBase):
 
     def set_multiselect_column_visibility(self, visible):
-        allowed = any(filter(lambda x: allow_healthmonitor_delete(x.datum), self.get_rows()))
+        allowed = any(filter(lambda x: allow_delete("healthmonitor", x.datum), self.get_rows()))
         return super(ProjectHealthMonitorTable, self).set_multiselect_column_visibility(visible=allowed)
 
     class Meta(object):
@@ -441,7 +447,7 @@ class ProjectMemberTable(base.MemberTableBase):
 class ProjectPoolTable(base.PoolTableBase):
 
     def set_multiselect_column_visibility(self, visible):
-        allowed = any(filter(lambda x: allow_pool_delete(x.datum), self.get_rows()))
+        allowed = any(filter(lambda x: allow_delete("pool", x.datum), self.get_rows()))
         return super(ProjectPoolTable, self).set_multiselect_column_visibility(visible=allowed)
 
     class Meta(object):
