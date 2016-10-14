@@ -228,7 +228,7 @@ class TestBase(unittest2.TestCase):
     def _build_pool_context(self, sp_type=None, cookie_name=None):
         return {
             "name": "pool01",
-            "description": "pool01",
+            "description": "the description",
             "listener_id": default_id(LISTENER),
             "pool_protocol": "HTTP",
             "lb_algorithm": "ROUND_ROBIN",
@@ -300,6 +300,11 @@ class TestContextProcessors(TestBase):
         context = self._build_pool_context()
         actual = target.get_pool_body_from_context(context)
         self.assertEqual(expected, actual)
+
+    def test_get_pool_body_from_context_name(self):
+        expected = self._get_pool()
+        context = self._build_pool_context()
+        actual = target.get_pool_body_from_context(context)
 
     def _test_get_pool_body_from_context_session_persistence(self, sp_type=None, cookie_name=None):
         context = self._build_pool_context(sp_type, cookie_name)

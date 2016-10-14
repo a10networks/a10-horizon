@@ -111,13 +111,14 @@ def populate_session_persistence_from_context(context, pool):
 
 
 def get_listener_name_from_context(context):
-    return str("{0}_{1}".format(context.get("protocol"),
-                                context.get("protocol_port")))
+    return context.get("listener_name",
+                       str("{0}_{1}".format(context.get("protocol"),
+                        context.get("protocol_port"))))
 
 
 def get_pool_name_from_context(context):
     # TODO(mdurrant) - Pools will need to "key" to their parents.
-    return context.get("name") or str(uuid.uuid4())
+    return context.get("pool_name") or str(uuid.uuid4())
 
 
 def get_cert_body_from_context(context):

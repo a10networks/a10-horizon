@@ -134,7 +134,8 @@ class CreateListenerAction(workflows.Action):
     listener_name = forms.CharField(label=_("Name"),
                                     min_length=1, max_length=255,
                                     required=True)
-
+    listener_description = forms.CharField(label=_("Description"), min_length=1, max_length=255,
+                                           required=False)
     protocol = forms.ChoiceField(label=_("Protocol"), required=True)
     protocol_port = forms.IntegerField(label=_("Protocol Port"),
                                        min_value=1, max_value=65535,
@@ -505,7 +506,7 @@ class CreateListenerStep(workflows.Step):
     action_class = CreateListenerAction
     # TODO(mdurrant): Add SSL data
     # TODO(mdurrant): Support all A10 protocols
-    contributes = ("loadbalancer_id", "name", "protocol", "protocol_port")
+    contributes = ("loadbalancer_id", "description", "listener_name", "protocol", "protocol_port")
 
     def prepare_action_context(self, request, context):
         super(CreateListenerStep, self).prepare_action_context(request, context)
@@ -522,7 +523,7 @@ class CreatePoolStep(workflows.Step):
     action_class = CreatePoolAction
     # TODO(mdurrant): Support all A10 LBs.
     # the pool protocol merely acts as a constraint on persistence
-    contributes = ("listener_id", "lb_algorithm", "pool_protocol", "session_persistence",
+    contributes = ("pool_name", "listener_id", "lb_algorithm", "pool_protocol", "session_persistence",
                    "cookie_name")
 
 
