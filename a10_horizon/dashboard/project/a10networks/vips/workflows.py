@@ -373,6 +373,8 @@ class SpecifyCertificateAction(workflows.Action):
 
         return rv
 
+    # Boolean fields have to be required False else form does not submit.
+    use_tls = forms.BooleanField(label=_("Use SSL"), initial=False, required=False)
     certificate_id = forms.ChoiceField(label=_("Select an existing certificate"),
                                        widget=forms.Select(
         attrs=ui_helpers.switchable_field("certificate_id")))
@@ -590,8 +592,10 @@ class CreateListenerWorkflow(workflows.Workflow):
             cert_body = from_ctx.get_cert_body_from_context(context)
 
             listener = lbaasv2.create_listener(request, body)
-            cert = certificates.create_certificate(request, cert_body)
-            binding = certificates.create_binding(request, listener.get("id"), cert.get("id"))
+            use_tls = context.get("use_tls", False)
+            if use_tls:
+                cert = certificates.create_certificate(request, cert_body)
+                binding = certificates.create_binding(request, listener.get("id"), cert.get("id"))
             return True
         except Exception as ex:
             LOG.exception(ex)
