@@ -38,9 +38,10 @@ def name_link(datum):
 allow_delete_functions = {
     "pool": lambda row: len(row.get("members")) == 0 and not row.get("healthmonitor_id"),
     "healthmonitor": lambda row: len(row.get("pools", [])) > 0,
-    "loadbalancer": lambda row: True,
-    "listener": lambda row: True,
-    "member": lambda row: True
+    "loadbalancer": lambda row: len(row.get("listeners")) == 0,
+    "listener": lambda row: not row.get("default_pool_id", False),
+    "member": lambda row: True,
+    "certificate": lambda row: True,
 }
 
 
@@ -167,10 +168,9 @@ class DeleteLoadBalancerAction(tables.DeleteAction):
             count)
 
     def allowed(self, request, obj):
-        if obj:
-            return len(obj.get("listeners", [])) == 0
-        else:
-            return True
+        return allow_delete("loadbalancer", obj) if obj else any(
+                filter(lambda x: allow_delete("loadbalancer", x.datum),
+                   self.table.get_rows()))
 
 
 class DeleteListenerAction(tables.DeleteAction):
@@ -194,9 +194,9 @@ class DeleteListenerAction(tables.DeleteAction):
             count)
 
     def allowed(self, request, obj):
-        if obj:
-            return obj.get("default_pool_id") is None
-        return True
+        return allow_delete("listener", obj) if obj else any(
+                filter(lambda x: allow_delete("listener", x.datum),
+                   self.table.get_rows()))
 
 
 class DeletePoolAction(tables.DeleteAction):
@@ -220,15 +220,9 @@ class DeletePoolAction(tables.DeleteAction):
             count)
 
     def allowed(self, request, obj):
-        if obj:
-            # Check the individual element
-            return allow_delete("pool", obj)
-        else:
-            # This is checking the table action - if NOTHING is deletable, disable.
-            return any(filter(lambda x: allow_delete("pool", x.datum), self.table.get_rows()))
-
-        return True
-
+        return allow_delete("pool", obj) if obj else any(
+                filter(lambda x: allow_delete("pool", x.datum),
+                   self.table.get_rows()))
 
 class DeleteMemberAction(tables.DeleteAction):
     name = "deletemember"
@@ -251,7 +245,9 @@ class DeleteMemberAction(tables.DeleteAction):
             count)
 
     def allowed(self, request, obj):
-        return obj is not None
+        return allow_delete("member", obj) if obj else any(
+                filter(lambda x: allow_delete("member", x.datum),
+                   self.table.get_rows()))
 
 
 class DeleteHealthMonitorAction(tables.DeleteAction):
@@ -275,9 +271,8 @@ class DeleteHealthMonitorAction(tables.DeleteAction):
             count)
 
     def allowed(self, request, obj):
-        # table check
         return allow_delete("healthmonitor", obj) if obj else any(
-            filter(lambda x: allow_delete("health_monitor", x.datum),
+                filter(lambda x: allow_delete("healthmonitor", x.datum),
                    self.table.get_rows()))
 
 
@@ -437,6 +432,10 @@ class ProjectHealthMonitorTable(base.HealthMonitorTableBase):
 
 class ProjectMemberTable(base.MemberTableBase):
 
+    def set_multiselect_column_visibility(self, visible):
+        allowed = any(filter(lambda x: allow_delete("member", x.datum), self.get_rows()))
+        return super(ProjectMemberTable, self).set_multiselect_column_visibility(visible=allowed)
+
     class Meta(object):
         name = "projectmembertable"
         verbose_name = _("Member Servers")
@@ -459,6 +458,10 @@ class ProjectPoolTable(base.PoolTableBase):
 
 class ProjectListenerTable(base.ListenerTableBase):
 
+    def set_multiselect_column_visibility(self, visible):
+        allowed = any(filter(lambda x: allow_delete("listener", x.datum), self.get_rows()))
+        return super(ProjectListenerTable, self).set_multiselect_column_visibility(visible=allowed)
+
     class Meta(object):
         name = "projectlistenertable"
         verbose_name = "Listeners"
@@ -467,6 +470,11 @@ class ProjectListenerTable(base.ListenerTableBase):
 
 
 class ProjectLoadbalancerTable(base.LoadbalancerTableBase):
+
+    def set_multiselect_column_visibility(self, visible):
+        allowed = any(filter(lambda x: allow_delete("loadbalancer", x.datum), self.get_rows()))
+        return super(ProjectLoadbalancerTable, self).set_multiselect_column_visibility(visible=allowed)
+
 
     class Meta(object):
         name = "projectloadbalancertable"

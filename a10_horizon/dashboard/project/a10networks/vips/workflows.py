@@ -671,13 +671,14 @@ class CreateHealthMonitorWorkflow(workflows.Workflow):
     slug = "createmonitor"
     name = _("Create Health Monitor")
     default_steps = (CreateHealthMonitorStep,)
-    success_url = URL_PREFIX + "createmonitor"
+    success_url = reverse_lazy(SUCCESS_URL)
     finalize_button_name = "Create Health Monitor"
 
     def handle(self, request, context):
         try:
             body = from_ctx.get_monitor_body(context)
             lbaasv2.healthmonitor_create(request, **body.get("healthmonitor"))
+
             return True
         except Exception as ex:
             LOG.exception(ex)
