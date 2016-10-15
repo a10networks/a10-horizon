@@ -20,3 +20,7 @@ class AnalyticsPanel(NeutronExtensionPanelBase):
     name = "Analytics"
     slug = "a10analytics"
     permissions = ('openstack.services.network',)
+
+    @staticmethod
+    def can_register(self):
+        return False

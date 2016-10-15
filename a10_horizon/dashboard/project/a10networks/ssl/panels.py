@@ -27,3 +27,7 @@ class A10SSLPanel(NeutronExtensionPanelBase):
     name = _("SSL")
     slug = "a10ssl"
     permissions = ("openstack.services.network", )
+
+    @staticmethod
+    def can_register(self):
+        return False
