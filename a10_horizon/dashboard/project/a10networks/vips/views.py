@@ -145,12 +145,13 @@ class IndexView(tabs.TabView):
 
 
 class UpdateLoadBalancerView(forms.views.ModalFormView):
-    name = _("Update Load Balancer")
+    name = _("Edit Load Balancer")
     form_class = p_forms.UpdateLoadBalancerForm
     context_object_name = "loadbalancer"
     success_url = reverse_lazy(SUCCESS_URL)
     template_name = "lb/update.html"
     page_title = name
+    modal_header = _("Edit Load Balancer")
 
     def get_context_data(self, **kwargs):
         context = super(UpdateLoadBalancerView, self).get_context_data(**kwargs)
@@ -175,12 +176,13 @@ class UpdateLoadBalancerView(forms.views.ModalFormView):
 
 
 class UpdateListenerView(forms.views.ModalFormView):
-    name = _("Update Listener")
+    name = _("Edit Listener")
     form_class = p_forms.UpdateListenerForm
     context_object_name = "listener"
     success_url = reverse_lazy(SUCCESS_URL)
     template_name = "lb/listeners/update.html"
     page_title = name
+    modal_header = _("Edit Listener")
 
     def get_context_data(self, **kwargs):
         context = super(UpdateListenerView, self).get_context_data(**kwargs)
@@ -205,12 +207,13 @@ class UpdateListenerView(forms.views.ModalFormView):
 
 
 class UpdatePoolView(forms.views.ModalFormView):
-    name = _("Update Pool")
+    name = _("Edit Pool")
     form_class = p_forms.UpdatePoolForm
     context_object_name = "pool"
     success_url = reverse_lazy(SUCCESS_URL)
     template_name = "lb/pools/update.html"
     page_title = name
+    modal_header = _("Edit Pool")
 
     def get_context_data(self, **kwargs):
         context = super(UpdatePoolView, self).get_context_data(**kwargs)
@@ -255,6 +258,7 @@ class UpdateMemberView(forms.views.ModalFormView):
     success_url = reverse_lazy(SUCCESS_URL)
     template_name = "lb/members/update.html"
     page_title = name
+    modal_header = _("Edit Member")
 
     def get_context_data(self, **kwargs):
         context = super(UpdateMemberView, self).get_context_data(**kwargs)
@@ -285,6 +289,7 @@ class UpdateCertificateView(forms.views.ModalFormView):
     success_url = reverse_lazy(SUCCESS_URL)
     template_name = "lb/certs/update.html"
     page_title = name
+    modal_header = _("Edit Certificate")
 
     def get_context_data(self, **kwargs):
         context = super(UpdateCertificateView, self).get_context_data(**kwargs)
