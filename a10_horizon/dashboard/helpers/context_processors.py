@@ -55,7 +55,7 @@ def get_pool_body_from_context(context, listener_id=None):
     name = get_pool_name_from_context(context)
     rv = {"pool": {
         "name": name,
-        "description": name,
+        "description": context.get("description"),
         "listener_id": listener_id or context.get("listener_id"),
         "lb_algorithm": context.get("lb_algorithm"),
         "protocol": context.get("pool_protocol"),

@@ -27,3 +27,13 @@ def switchable_field(slug):
         "data-slug": slug
     }
 
+
+def readonly(obj=None):
+    # if object specified, make it read only
+    rv = {"readonly": "readonly" }
+    if obj:
+        obj.update(rv)
+        return obj
+    else:
+    # return the readonly json attribute
+        return rv

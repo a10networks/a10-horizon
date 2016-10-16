@@ -30,6 +30,7 @@ from a10_horizon.dashboard.api import lbaasv2 as lbaasv2_api
 from a10_horizon.dashboard.api import certificates as certs_api
 
 from a10_horizon.dashboard.helpers import context_processors as from_ctx
+from a10_horizon.dashboard.helpers import ui_helpers as ui_helpers
 import api_helpers
 
 
@@ -42,7 +43,7 @@ class UpdateLoadBalancerForm(forms.SelfHandlingForm):
         super(UpdateLoadBalancerForm, self).__init__(*args, **kwargs)
         self.submit_url = kwargs.get("id")
 
-    id = forms.CharField(label=_("ID"), widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    id = forms.CharField(label=_("ID"), widget=forms.TextInput(attrs=ui_helpers.readonly()))
     name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
                            required=True)
     description = forms.CharField(label=_("Description"), min_length=1,
@@ -73,7 +74,7 @@ class UpdateListenerForm(forms.SelfHandlingForm):
         super(UpdateListenerForm, self).__init__(*args, **kwargs)
         self.submit_url = kwargs.get("id")
 
-    id = forms.CharField(label=_("ID"), widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    id = forms.CharField(label=_("ID"), widget=forms.TextInput(attrs=ui_helpers.readonly()))
     name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
                            required=True)
     description = forms.CharField(label=_("Description"), min_length=1,
@@ -100,7 +101,7 @@ class UpdateListenerForm(forms.SelfHandlingForm):
 
 
 class UpdatePoolForm(forms.SelfHandlingForm):
-    id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs=ui_helpers.readonly()))
     name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
                            required=True)
     description = forms.CharField(label=_("Description"), min_length=1,
@@ -173,9 +174,9 @@ class UpdatePoolForm(forms.SelfHandlingForm):
 
 
 class UpdateMemberForm(forms.SelfHandlingForm):
-    id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+    id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(ui_helpers.readonly()))
     pool_id = forms.CharField(label=_("ID"),
-                              widget=forms.HiddenInput(attrs={'readonly': 'readonly'}))
+                              widget=forms.HiddenInput(attrs=ui_helpers.readonly()))
     weight = forms.IntegerField(label=_("Weight"))
     admin_state_up = forms.BooleanField(label=_("Admin State"), required=False, initial=True)
 
@@ -210,19 +211,19 @@ class UpdateMemberForm(forms.SelfHandlingForm):
 
 class UpdateCertificateForm(forms.SelfHandlingForm):
     id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(
-        attrs={'readonly': 'readonly'}), required=True)
+        attrs=ui_helpers.readonly()), required=True)
     name = forms.CharField(label=_("Name"), min_length=1, max_length=255,
                            required=True)
     # description = forms.CharField(label=_("Description"), min_length=1,
     #                               max_length=255, required=False)
     cert_data = forms.CharField(widget=forms.HiddenInput(
-        attrs={'readonly': 'readonly'}), required=True)
+        attrs=ui_helpers.readonly()), required=True)
     key_data = forms.CharField(widget=forms.HiddenInput(
-        attrs={'readonly': 'readonly'}), required=True)
+        attrs=ui_helpers.readonly()), required=True)
     intermediate_data = forms.CharField(widget=forms.HiddenInput(
-        attrs={'readonly': 'readonly'}), required=True)
+        attrs=ui_helpers.readonly()), required=True)
     password = forms.CharField(widget=forms.HiddenInput(
-        attrs={'readonly': 'readonly'}), required=True)
+        attrs=ui_helpers.readonly()), required=True)
 
     failure_url = "horizon:project:a10vips:index"
     success_url = "horizon:project:a10vips:index"

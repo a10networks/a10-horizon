@@ -103,7 +103,7 @@ class TestBase(unittest2.TestCase):
     def _get_pool(self, is_request=False, **kwargs):
         rv = {"pool": {
             "name": "pool01",
-            "description": "pool01",
+            "description": "the description",
             "listener_id": default_id(LISTENER),
             "protocol": "HTTP",
             "lb_algorithm": "ROUND_ROBIN",
@@ -227,7 +227,7 @@ class TestBase(unittest2.TestCase):
 
     def _build_pool_context(self, sp_type=None, cookie_name=None):
         return {
-            "name": "pool01",
+            "pool_name": "pool01",
             "description": "the description",
             "listener_id": default_id(LISTENER),
             "pool_protocol": "HTTP",
@@ -322,7 +322,7 @@ class TestContextProcessors(TestBase):
     def test_get_pool_body_from_context_session_persistence_source_ip(self):
         self._test_get_pool_body_from_context_session_persistence("SOURCE_IP")
 
-    def test_get_pool_body_from_context_session_persistence_source_ip(self):
+    def test_get_pool_body_from_context_session_persistence_http_cookie(self):
         self._test_get_pool_body_from_context_session_persistence("HTTP_COOKIE")
 
     def test_get_pool_body_from_context(self):
@@ -362,7 +362,7 @@ class TestContextProcessors(TestBase):
         self.assertEqual(expected, actual)
 
     def _test_get_pool_name_from_context(self, expected, name=None):
-        context = {"name": name}
+        context = {"pool_name": name}
         actual = target.get_pool_name_from_context(context)
         self.assertEqual(expected, actual)
 

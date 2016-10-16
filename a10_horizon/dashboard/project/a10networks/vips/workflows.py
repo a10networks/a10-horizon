@@ -160,6 +160,7 @@ class CreateListenerAction(workflows.Action):
 
 class CreatePoolAction(workflows.Action):
     pool_name = forms.CharField(label=_("Name"), required=True)
+    description = forms.CharField(label_("Description"), required=False)
     listener_id = forms.ChoiceField(label=_("Listener"), required=True)
     lb_algorithm = forms.ChoiceField(label=_("LB Algorithm"), required=True)
     pool_protocol = forms.ChoiceField(label=_("Pool Protocol"), required=True)
@@ -482,8 +483,7 @@ class CreateSessionPersistenceAction(workflows.Action):
     # TODO(mdurrant): Make this sucker dynamic - filter based on the protocol.
     session_persistence = forms.ChoiceField(label=_("Session Persistence"),
                                             widget=forms.Select(
-                                            attrs={"class": "switchable",
-                                                   "data-slug": "session_persistence"}),
+                                            attrs=ui_helpers.switchable_field("session_persistence")),
                                             required=True)
     cookie_name = forms.CharField(label=_("Cookie Name"), min_length=1, max_length=255,
                                   required=False)
@@ -525,7 +525,7 @@ class CreatePoolStep(workflows.Step):
     action_class = CreatePoolAction
     # TODO(mdurrant): Support all A10 LBs.
     # the pool protocol merely acts as a constraint on persistence
-    contributes = ("pool_name", "listener_id", "lb_algorithm", "pool_protocol", "session_persistence",
+    contributes = ("pool_name", "description", "listener_id", "lb_algorithm", "pool_protocol", "session_persistence",
                    "cookie_name")
 
 
