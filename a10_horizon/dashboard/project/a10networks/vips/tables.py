@@ -90,7 +90,7 @@ class CreatePoolLink(tables.LinkAction):
     success_url = SUCCESS_URL
 
 
-class CreateMemberLink(tables.LinkAction):
+class CreateMemberForPoolLink(tables.LinkAction):
     name = "createmember"
     verbose_name = _("Add Member")
     url = URL_PREFIX + "createmember"
@@ -102,6 +102,29 @@ class CreateMemberLink(tables.LinkAction):
 
     def get_link_url(self, datum):
         return reverse_lazy(self.url, kwargs={'pool_id': datum["id"]})
+
+
+class CreateMemberLink(tables.LinkAction):
+    name = "createmember"
+    verbose_name = _("Add Member")
+    url = URL_PREFIX + "createmember"
+    classes = ("ajax-modal",)
+    icon = "plus"
+    policy_rules = ("network", )
+    # success_url = URL_PREFIX + "createmember"
+    # submit_url = URL_PREFIX + "createmember"
+
+    def __init__(self, *args, **kwargs):
+        super(CreateMemberLink, self).__init__(*args, **kwargs)
+
+    def get_link_url(self, datum=None):
+        id = None
+        if datum is not None and "id" in datum:
+            id = datum["id"]
+        else:
+            id = self.table.kwargs["id"]
+
+        return reverse_lazy(self.url, kwargs={"pool_id": id})
 
 
 class CreateHealthMonitorLink(tables.LinkAction):
@@ -170,7 +193,7 @@ class DeleteLoadBalancerAction(tables.DeleteAction):
 
     def allowed(self, request, obj):
         return allow_delete("loadbalancer", obj) if obj else any(
-                filter(lambda x: allow_delete("loadbalancer", x.datum),
+            filter(lambda x: allow_delete("loadbalancer", x.datum),
                    self.table.get_rows()))
 
 
@@ -196,7 +219,7 @@ class DeleteListenerAction(tables.DeleteAction):
 
     def allowed(self, request, obj):
         return allow_delete("listener", obj) if obj else any(
-                filter(lambda x: allow_delete("listener", x.datum),
+            filter(lambda x: allow_delete("listener", x.datum),
                    self.table.get_rows()))
 
 
@@ -222,8 +245,9 @@ class DeletePoolAction(tables.DeleteAction):
 
     def allowed(self, request, obj):
         return allow_delete("pool", obj) if obj else any(
-                filter(lambda x: allow_delete("pool", x.datum),
+            filter(lambda x: allow_delete("pool", x.datum),
                    self.table.get_rows()))
+
 
 class DeleteMemberAction(tables.DeleteAction):
     name = "deletemember"
@@ -247,7 +271,7 @@ class DeleteMemberAction(tables.DeleteAction):
 
     def allowed(self, request, obj):
         return allow_delete("member", obj) if obj else any(
-                filter(lambda x: allow_delete("member", x.datum),
+            filter(lambda x: allow_delete("member", x.datum),
                    self.table.get_rows()))
 
 
@@ -273,7 +297,7 @@ class DeleteHealthMonitorAction(tables.DeleteAction):
 
     def allowed(self, request, obj):
         return allow_delete("healthmonitor", obj) if obj else any(
-                filter(lambda x: allow_delete("healthmonitor", x.datum),
+            filter(lambda x: allow_delete("healthmonitor", x.datum),
                    self.table.get_rows()))
 
 
@@ -387,6 +411,7 @@ class UpdateMemberAction(tables.LinkAction):
                            kwargs={'pool_id': datum['pool_id'], 'id': datum["id"]})
         return base_url
 
+
 class UpdateCertificateAction(tables.LinkAction):
     name = "editcertificate"
     verbose_name = _("Edit Certificate")
@@ -468,7 +493,7 @@ class ProjectPoolTable(base.PoolTableBase):
         name = "projectpooltable"
         verbose_name = "Pools"
         table_actions = (CreatePoolLink, DeletePoolAction, )
-        row_actions = (UpdatePoolAction, DeletePoolAction, CreateMemberLink, )
+        row_actions = (UpdatePoolAction, DeletePoolAction, CreateMemberForPoolLink, )
 
 
 class ProjectListenerTable(base.ListenerTableBase):
@@ -489,7 +514,6 @@ class ProjectLoadbalancerTable(base.LoadbalancerTableBase):
     def set_multiselect_column_visibility(self, visible):
         allowed = any(filter(lambda x: allow_delete("loadbalancer", x.datum), self.get_rows()))
         return super(ProjectLoadbalancerTable, self).set_multiselect_column_visibility(visible=allowed)
-
 
     class Meta(object):
         name = "projectloadbalancertable"

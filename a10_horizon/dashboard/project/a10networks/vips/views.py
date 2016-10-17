@@ -529,7 +529,11 @@ class PoolDetailView(tables.MultiTableView, ListenerTableDataSourceMixin):
     def get_context_data(self, **kwargs):
         context = super(PoolDetailView, self).get_context_data(**kwargs)
         context[self.context_object_name] = self.get_initial()
-        # context["pool_id"] = context[self.context_object_name].get("id")
+        pool = self.get_initial()
+        # table = p_tables.ProjectMemberTable(self.request)
+        # context["actions"] = table.render_row_actions(pool)
+
+        context["pool_id"] = context[self.context_object_name].get("id")
         return context
 
     @memoized.memoized_method
@@ -550,11 +554,9 @@ class PoolDetailView(tables.MultiTableView, ListenerTableDataSourceMixin):
     def get_initial(self):
         return self._get_object()
 
-    # We only get one pool - but table displays are easy on the eyes.
     def get_projectmembertable_data(self):
         rv = []
         try:
-
             pool_id = self.kwargs['id']
             pool = self.get_initial()
             members = pool.get("members", []) or []
@@ -563,7 +565,6 @@ class PoolDetailView(tables.MultiTableView, ListenerTableDataSourceMixin):
             if len(member_ids) > 0:
                 members = map(lambda x: lbaasv2_api.member_get(self.request, pool_id, x),
                               member_ids)
-                # members = map(lambda x: self.set_pool_on_member(x, pool_id), members)
                 rv = members
             return rv
         except Exception as ex:

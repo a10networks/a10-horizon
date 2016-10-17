@@ -88,7 +88,7 @@ class PoolTableBase(tables.DataTable):
                                       verbose_name=_("Health Monitor"),
                                       link=links.link_hm_detail_from_pool)
     member_count = tables.Column(display_transform.member_count, verbose_name=_("# of Members"))
-    member_summary = tables.Column(display_transform.member_links, verbose_name=_("Members"))
+    # member_summary = tables.Column(display_transform.member_links, verbose_name=_("Members"))
 
     def get_object_id(self, datum):
         return datum.get("id")

@@ -267,9 +267,6 @@ class AddReactionView(workflows.WorkflowView):
                                        kwargs=self.kwargs)
         return self.kwargs
 
-    # def post(self, request, *args, **kwargs):
-    #     return super(AddReactionView, self).post(request, *args, **kwargs)
-
 
 class GroupDetailView(tables.MultiTableView):
     name = _("Scaling Group Overview")

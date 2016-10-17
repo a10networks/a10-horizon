@@ -270,20 +270,20 @@ class DeleteReactionLink(tables.DeleteAction):
     def _remove_deleted(self, reactions, object_ids):
         rv = reactions
         if len(reactions) > 0:
-                position = 0
-                for reaction in reactions:
-                    reaction["position"] = int(position)
-                    position += 1
+            position = 0
+            for reaction in reactions:
+                reaction["position"] = int(position)
+                position += 1
 
-                for obj_id in object_ids:
-                    reaction = None
-                    try:
-                        reaction = reactions[int(obj_id)]
-                    except Exception as ex:
-                        LOG.exception(ex)
+            for obj_id in object_ids:
+                reaction = None
+                try:
+                    reaction = reactions[int(obj_id)]
+                except Exception as ex:
+                    LOG.exception(ex)
 
-                    if reaction:
-                        del reactions[int(obj_id)]
+                if reaction:
+                    del reactions[int(obj_id)]
 
         return rv
 
