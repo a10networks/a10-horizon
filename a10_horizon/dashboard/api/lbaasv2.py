@@ -451,18 +451,18 @@ def member_list(request, pool_id, **kwargs):
 
 
 def _member_list(request, pool_id, **kwargs):
-    members = neutronclient(request).list_lbaas_members(pool_id, **kwargs).get('members')
+    members = neutronclient(requargsest).list_lbaas_members(pool_id, **kwargs).get('members')
     return [m for m in members]
 
 
 def member_get(request, pool_id, member_id, **kwargs):
-    rv = neutronclient(request).show_lbaas_member(pool_id, member_id, **kwargs).get('member')
+    rv = neutronclient(request).show_lbaas_member(member_id, pool_id, **kwargs).get('member')
     rv["pool_id"] = pool_id
     return rv
 
 
 def member_update(request, pool_id, member_id, **kwargs):
-    member = neutronclient(request).update_lbaas_member(pool_id, member_id, kwargs)
+    member = neutronclient(request).update_lbaas_member(member_id, pool_id, kwargs)
     return member
 
 

@@ -97,10 +97,11 @@ class CreateMemberLink(tables.LinkAction):
     classes = ("ajax-modal",)
     icon = "plus"
     policy_rules = ("network", )
-    success_url = SUCCESS_URL
+    success_url = URL_PREFIX + "createmember"
+    submit_url = URL_PREFIX + "createmember"
 
     def get_link_url(self, datum):
-        return reverse_lazy(URL_PREFIX + "createmember", kwargs={'pool_id': datum["id"]})
+        return reverse_lazy(self.url, kwargs={'pool_id': datum["id"]})
 
 
 class CreateHealthMonitorLink(tables.LinkAction):
@@ -372,6 +373,20 @@ class UpdatePoolAction(tables.LinkAction):
         return base_url
 
 
+class UpdateMemberAction(tables.LinkAction):
+    name = "editmember"
+    verbose_name = _("Edit Member")
+    url = URL_PREFIX + "editmember"
+    classes = ("ajax-modal", )
+    icon = "plus"
+    policy_rules = ("network", )
+    success_url = "horizon:project:a10vips:index"
+
+    def get_link_url(self, datum):
+        base_url = reverse(URL_PREFIX + self.name,
+                           kwargs={'pool_id': datum['pool_id'], 'id': datum["id"]})
+        return base_url
+
 class UpdateCertificateAction(tables.LinkAction):
     name = "editcertificate"
     verbose_name = _("Edit Certificate")
@@ -439,8 +454,8 @@ class ProjectMemberTable(base.MemberTableBase):
     class Meta(object):
         name = "projectmembertable"
         verbose_name = _("Member Servers")
-        table_actions = (DeleteMemberAction,)
-        row_actions = (DeleteMemberAction,)
+        table_actions = (CreateMemberLink, DeleteMemberAction, )
+        row_actions = (UpdateMemberAction, DeleteMemberAction,)
 
 
 class ProjectPoolTable(base.PoolTableBase):

@@ -57,60 +57,6 @@ LISTENER_POOL_PROTOCOLS = {
     "TCP": ["HTTP", "HTTPS", "TCP"]
 }
 
-# TODO(mdurrant) - Remove the debugging crap
-CERT_DATA = """-----BEGIN CERTIFICATE-----
-MIID1zCCAr+gAwIBAgIJAIUmrLlxfBYIMA0GCSqGSIb3DQEBCwUAMIGBMQswCQYD
-VQQGEwJVUzELMAkGA1UECAwCSUQxDjAMBgNVBAcMBUJvaXNlMRwwGgYDVQQKDBNB
-MTAgTmV0d29yayBUZXN0aW5nMRUwEwYDVQQLDAxTb2Z0d2FyZSBEZXYxIDAeBgNV
-BAMMF3NzbHRlc3QuYTEwbmV0d29ya3MuY29tMB4XDTE2MTAxMTIwMDYyOVoXDTI2
-MTAwOTIwMDYyOVowgYExCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJJRDEOMAwGA1UE
-BwwFQm9pc2UxHDAaBgNVBAoME0ExMCBOZXR3b3JrIFRlc3RpbmcxFTATBgNVBAsM
-DFNvZnR3YXJlIERldjEgMB4GA1UEAwwXc3NsdGVzdC5hMTBuZXR3b3Jrcy5jb20w
-ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDbnD5CiARaiDAjd53AGwtO
-DG0fbPOldi8/anCyZWA2/lPlbBvSGBZtNjAtG+a6jGQhxlp27K3yheuF0jZeBpFk
-adBMSUQYCYfNeMFn2n8JThO8k1IfAheKxzAzjq454ieAOjTuUkVLHWV74mkfmE7e
-qJWEen3idoJahmofWKLFXB3g/r2vyjVAllka1r37N6YNbO3EPE3SVGdHylQSlXI8
-ajenHgiSf+luhzsfx5/o+cuSUhmFD5i1J0AHdtcgdd+OXR/11dG4fy3oir+8cbaV
-dwaXP65ra5W7b3nOeI4JO1N7Aa1z8Mtbb1J16QRHJT/ekCh+OF5HNrkmXZLD0jRL
-AgMBAAGjUDBOMB0GA1UdDgQWBBRmg1gbMqCOxj5atETfBYp4e/pyLzAfBgNVHSME
-GDAWgBRmg1gbMqCOxj5atETfBYp4e/pyLzAMBgNVHRMEBTADAQH/MA0GCSqGSIb3
-DQEBCwUAA4IBAQA8XsLizv4KiO0PGK+k7zF5xJ9ogVZdkjY+CgXlop0xTq+Kt7n1
-+6EPorS7HNYiltC4pr5OjcMhDtKORloV0ATSa5K27dyzYYw6v1cfVOiivixyT6dY
-hm9EZs+gYt8kVo1mAfb0g6zqRJy3gkMVkhsb4DlxPRNcKMX1bLrfisrRfc6yDH6D
-dZBK63BSYh7H8wHh1CE6kBjdNOFDL4nJIRup/mtCZETU7z/FFvnEqaBDkIKVQ4dk
-LyUPKyQcM6tFc6WjHTx/YOuih4gaupzJDCMWjyWrrNxNIaTZziRSuCggLs4b3LQD
-j84tU5/SsueWoIXdCcogq9Szn/UjfJGi9n1s
------END CERTIFICATE-----"""
-
-KEY_DATA = """-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDbnD5CiARaiDAj
-d53AGwtODG0fbPOldi8/anCyZWA2/lPlbBvSGBZtNjAtG+a6jGQhxlp27K3yheuF
-0jZeBpFkadBMSUQYCYfNeMFn2n8JThO8k1IfAheKxzAzjq454ieAOjTuUkVLHWV7
-4mkfmE7eqJWEen3idoJahmofWKLFXB3g/r2vyjVAllka1r37N6YNbO3EPE3SVGdH
-ylQSlXI8ajenHgiSf+luhzsfx5/o+cuSUhmFD5i1J0AHdtcgdd+OXR/11dG4fy3o
-ir+8cbaVdwaXP65ra5W7b3nOeI4JO1N7Aa1z8Mtbb1J16QRHJT/ekCh+OF5HNrkm
-XZLD0jRLAgMBAAECggEAFUj/f9NPGLc6czWUxJnabqYlrXYR52edDLh0U9YfjTT5
-TLM9vw82nT8zTCv4IPyad+uRuRUXhvoT6dSGEHbygJkA52PyhaHm17Nsi3RR+8Tl
-hNGClB7PyVOlCFo76MBSs8rwdmji7nTa8TbwmW9ZtZsBYuW8bcauu7drcb5ViGtH
-I1mJycZ2RxDvpXvWpRClwfFiJTEpBgxYo8psaFkUFQqht2j3hD7kyuzpxO9xpjsh
-Wl2Eee0p8b2QVmiCT/LgqB8d9Z3VCdew4r2Un99PfO7q4OFcWwJ3s1Y0apQQ914E
-MoTgITBM7COhaVAnKPGa/xvJTqSZ0wEoYI5YXK2EAQKBgQD/U3xhTJGisNdMCsuo
-WSXRmHby9GNp+Ut2PzhbxY5HovDGNauiIlkVFelUQ18XGE0tlYKiFTv15XbKNatB
-qr7uATTrV1f8IWrlUOwhrrTQyJPay6m0MvbfX7Y7uBEi4t1bHaU8/JYR6iYvG2pX
-cuArwmVoStJRedCOmCIYGW106wKBgQDcMKAjgim9OGcVL9J+tHnbchf9xWWJR7r4
-HwQZE2qddMVC7sJnMf0yGLWSUBuIlh+8t9vD31E5GjAN1z4DYs4iHZwH70QDtYSy
-keC9G8QEQk/VZTVdBtnXp+YRj++ol+Y1mkE/2+530A3pcQBEpNfxQpV0VajFkFeF
-aI+X4kHmIQKBgQDjFqzsmT56tdB3eK6UZ93EIlfBVO3KxoiAflAxB2+5dUmy8O9b
-gDM9FsT1RgqgLuQN5AlRAZPX66QQy1UrTaMNapNXsdK2lD5QAP5UIt/9RjiDBFtG
-w4FhQO6DBP5wydhY/vAFYx5ShrA5e6fEaY7KPNcWwF15S9/bw6GnT45TywKBgGrw
-PsYgEE9y1jWm/S9GTaxzdA1u0kpjCP46ag4XrP792FQSi139HEA5We3OdCDY8F8C
-WHx/t/3opxAByn9wfDZ7dO0xmjHG9cSYLrMJiiCbaBR2y/z7N8+SHp3G7xlNdKPx
-3+C42s9bv3XxyLSN7saglN9kPsx8ttT3HE4it+ihAoGBANvIAPjKySNPcbz6eeYE
-pLLzK0l5oRNPGnqOj6N5Njy5IWz/T0MRB1Mh/w0zNk9EQbdhzV5Lm71cuNOZb93W
-5vxpPBxWyAWBjlaPiPxz0AmjKPrXsRekyTsBe8HJ1Bk8/qSY8k0Gk8yKgPm2Je3L
-Rv4a8yRehRRjWFxwExTtwFwh
------END PRIVATE KEY-----"""
-
 
 class CreateLbAction(workflows.Action):
     lb_name = forms.CharField(label=_("Name"), min_length=1, max_length=255, required=True)
@@ -160,7 +106,7 @@ class CreateListenerAction(workflows.Action):
 
 class CreatePoolAction(workflows.Action):
     pool_name = forms.CharField(label=_("Name"), required=True)
-    description = forms.CharField(label_("Description"), required=False)
+    description = forms.CharField(label=_("Description"), required=False)
     listener_id = forms.ChoiceField(label=_("Listener"), required=True)
     lb_algorithm = forms.ChoiceField(label=_("LB Algorithm"), required=True)
     pool_protocol = forms.ChoiceField(label=_("Pool Protocol"), required=True)
@@ -185,6 +131,7 @@ class CreatePoolAction(workflows.Action):
 
 class CreateMemberAction(workflows.Action):
     pool_id = forms.Field(widget=forms.HiddenInput, initial="")
+    name = forms.CharField(label=_("Name"))
     weight = forms.IntegerField(label=_("Weight"), min_value=1, max_value=65535,
                                 required=True)
     member_subnet_id = forms.ChoiceField(label=_("Member Subnet"), required=True)
@@ -224,17 +171,12 @@ class CreateHealthMonitorAction(workflows.Action):
             self.success_url = reverse_lazy(self.detail_url)
 
     def hide_http(title):
-        return {
-            "class": "switched",
-            "data-switch-on": "monitor_type",
-            "data-monitor_type-http": title,
-            "data-monitor_type-https": title,
-        }
+        return ui_helpers.switched_field("monitor_type", ({"http": title, "https": title}))
 
     pool_id = forms.ChoiceField(label=_("Pool"), required=True)
     monitor_type = forms.ChoiceField(label=_("Monitor Type"), required=True,
                                      widget=forms.Select(
-                                     attrs={"class": "switchable", "data-slug": "monitor_type"}))
+                                     attrs=ui_helpers.switchable_field("monitor_typr")))
 
     delay = forms.IntegerField(label=_("Delay"), required=True)
     timeout = forms.IntegerField(label=_("Timeout"), required=True)
@@ -288,15 +230,6 @@ class CreateCertificateAction(workflows.Action):
             self.fields["key_data"].initial = KEY_DATA
             self.fields["password"].initial = ""
 
-    def textarea_size(rows=10, cols=25):
-        """
-            Returns default style attributes for text inputs
-            Makes code cleaner by not having these littered everywhere
-        """
-        return {
-            "cols": cols,
-            "rows": rows
-        }
 
     """
         Specify an existing certificate or create a new one.
@@ -304,17 +237,17 @@ class CreateCertificateAction(workflows.Action):
     # TODO(mdurrant) Create a validator for cert data using cryptography lib
     cert_name = forms.CharField(label=_("Name"),
                                 help_text="Specify a name for the certificate data",
-                                widget=forms.Textarea(attrs=textarea_size(rows=1)))
+                                widget=forms.Textarea(attrs=ui_helpers.textarea_size(rows=1)))
     cert_data = forms.CharField(label=_("Certificate Data"), required=False,
                                 widget=forms.Textarea(
-                                    attrs=textarea_size()),
+                                    attrs=ui_helpers.textarea_size()),
                                 min_length=1, max_length=8000)
     key_data = forms.CharField(label=_("Key Data"), required=False,
-                               widget=forms.Textarea(attrs=textarea_size()),
+                               widget=forms.Textarea(attrs=ui_helpers.textarea_size()),
                                min_length=1, max_length=8000)
     intermediate_data = forms.CharField(label=_("Intermediate Data"), required=False,
                                         widget=forms.Textarea(
-                                            attrs=textarea_size()),
+                                            attrs=ui_helpers.textarea_size()),
                                         min_length=1, max_length=8000)
     password = forms.CharField(widget=forms.PasswordInput(render_value=False), required=False)
 
@@ -333,31 +266,16 @@ class SpecifyCertificateAction(workflows.Action):
         Specify an existing certificate or create a new one.
     """
 
-    def _random_name(self):
-        import random
-        chars = []
-        for n in range(1, 16):
-            chars.append(chr(random.randint(65, 90)))
-        return "".join(chars)
-
     def _populate_debug_defaults(self):
         dev_debug = horizon_conf.HORIZON_CONFIG.get("debug")
 
-        if dev_debug:
-            self.fields["cert_name"].initial = self._random_name()
-            self.fields["cert_data"].initial = CERT_DATA
-            self.fields["key_data"].initial = KEY_DATA
-            self.fields["password"].initial = ""
+        from a10_horizon.tests import testdata
 
-    def textarea_size(rows=10, cols=25):
-        """
-            Returns default style attributes for text inputs
-            Makes code cleaner by not having these littered everywhere
-        """
-        return {
-            "cols": cols,
-            "rows": rows
-        }
+        if dev_debug:
+            self.fields["cert_name"].initial = testdata._random_name()
+            self.fields["cert_data"].initial = testdata.CERT_DATA
+            self.fields["key_data"].initial = testdata.KEY_DATA
+            self.fields["password"].initial = ""
 
     def hide_create_controls(title, merge_attrs={}):
         """
@@ -382,53 +300,26 @@ class SpecifyCertificateAction(workflows.Action):
 
     cert_name = forms.CharField(label=_("Name"),
                                 help_text="Specify a name for the certificate data",
-                                widget=forms.Textarea(attrs=hide_create_controls("Name", textarea_size(rows=1))))
+                                widget=forms.Textarea(attrs=hide_create_controls("Name", ui_helpers.textarea_size(rows=1))))
     cert_data = forms.CharField(label=_("Certificate Data"), required=False,
                                 widget=forms.Textarea(
-                                    attrs=hide_create_controls("Certificate Data", textarea_size())),
+                                    attrs=hide_create_controls("Certificate Data", ui_helpers.textarea_size())),
                                 min_length=1, max_length=8000)
     key_data = forms.CharField(label=_("Key Data"), required=False,
                                widget=forms.Textarea(attrs=hide_create_controls(
-                                   "Private Key", textarea_size())),
+                                   "Private Key", ui_helpers.textarea_size())),
                                min_length=1, max_length=8000)
     intermediate_data = forms.CharField(label=_("Intermediate Data"), required=False,
                                         widget=forms.Textarea(
-                                            attrs=hide_create_controls("Intermediate Data", textarea_size())),
+                                            attrs=hide_create_controls("Intermediate Data", ui_helpers.textarea_size())),
                                         min_length=1, max_length=8000)
     password = forms.CharField(widget=forms.PasswordInput(
-        render_value=False, attrs=hide_create_controls("Password", textarea_size(rows=1))), required=False)
+        render_value=False, attrs=hide_create_controls("Password", ui_helpers.textarea_size(rows=1))), required=False)
 
     def __init__(self, request, context, *args, **kwargs):
         super(SpecifyCertificateAction, self).__init__(request, context, *args, **kwargs)
         self._set_control_attributes()
         self._populate_debug_defaults()
-
-    def _random_name(self):
-        import random
-        chars = []
-        MAX_CHARS = 16
-        MIN_CHARS = 8
-        CHAR_LOWER_BOUND = ord('A')
-        CHAR_UPPER_BOUND = ord('Z')
-
-        for n in range(1, random.randint(MIN_CHARS, MAX_CHARS)):
-            chars.append(chr(random.randint(CHAR_LOWER_BOUND, CHAR_UPPER_BOUND) +
-                             (32 if bool(random.randint(0, 2)) else 0)))
-        return "".join(chars)
-
-    def switched_field(data_slug, title_mappings):
-        """
-            Beginning of abstracting the above.
-        """
-        rv = {
-            "class": "switched",
-            "data-switch-on": data_slug
-        }
-
-        for k, v in title_mappings.iteritems():
-            attr_key = "data-{0}-{1}".format(data_slug, k)
-            attr_val = v
-            rv[attr_key] = attr_val
 
     def _set_control_attributes(self):
         # name: title
@@ -533,7 +424,7 @@ class CreateMemberStep(workflows.Step):
     action_class = CreateMemberAction
     # TODO(mdurrant) - Refactor Create*Steps as mixins so individual steps can be used
     # for "create the LB graph" and "create a single element"
-    contributes = ("weight", "member_subnet_id", "member_address", "member_protocol_port",
+    contributes = ("name", "weight", "member_subnet_id", "member_address", "member_protocol_port",
                    "admin_state_up", "pool_id")
 
 
@@ -648,7 +539,7 @@ class CreateMemberWorkflow(workflows.Workflow):
     success_url = reverse_lazy(SUCCESS_URL)
     # success_url = SUCCESS_URL
     # redirect_url = "horizon:project:a10scaling:index"
-    detail_url = "horizon:project:a10vips:pooldetail"
+    # detail_url = "horizon:project:a10vips:pooldetail"
     finalize_button_name = "Create Member"
     success_message = _("Added Member")
     failure_message = _("Failed to add member")

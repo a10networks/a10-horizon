@@ -266,12 +266,13 @@ class UpdateMemberView(forms.views.ModalFormView):
 
     @memoized.memoized_method
     def _get_object(self, *args, **kwargs):
-        id = self.kwargs['id']
+        id, pool_id = self.kwargs['id'], self.kwargs["pool_id"]
         self.submit_url = reverse_lazy(URL_PREFIX + "editmember",
-                                       kwargs={"id": id})
+                                       kwargs={"id": id, "pool_id": pool_id})
+        self.success_url = reverse_lazy(URL_PREFIX + "pooldetail", kwargs={"id": pool_id})
         if id:
             try:
-                return lbaasv2_api.member_get(self.request, id)
+                return lbaasv2_api.member_get(self.request, pool_id, id)
             except Exception as ex:
                 redirect = self.success_url
                 msg = _("Unable to retrieve Pool: %s") % ex
@@ -501,7 +502,7 @@ class MemberDetailView(tabs.TabView):
         pool_id = self.kwargs['pool_id']
 
         self.submit_url = reverse_lazy(URL_PREFIX + "editmember",
-                                       kwargs={"id": id})
+                                       kwargs={"id": id, "pool_id": pool_id})
         if id:
             try:
                 rv = lbaasv2_api.member_get(self.request, id, pool_id)
@@ -528,18 +529,18 @@ class PoolDetailView(tables.MultiTableView, ListenerTableDataSourceMixin):
     def get_context_data(self, **kwargs):
         context = super(PoolDetailView, self).get_context_data(**kwargs)
         context[self.context_object_name] = self.get_initial()
-        context["pool_id"] = context[self.context_object_name].get("id")
+        # context["pool_id"] = context[self.context_object_name].get("id")
         return context
 
     @memoized.memoized_method
     def _get_object(self, *args, **kwargs):
         rv = {}
-        id = self.kwargs['id']
-        self.submit_url = reverse_lazy(URL_PREFIX + "edit",
-                                       kwargs={"id": id})
-        if id:
+        pool_id = self.kwargs['id']
+        # self.submit_url = reverse_lazy(URL_PREFIX + "edit",
+        #                                kwargs={"id": id})
+        if pool_id:
             try:
-                rv = lbaasv2_api.pool_get(self.request, id)
+                rv = lbaasv2_api.pool_get(self.request, pool_id)
                 return rv
             except Exception as ex:
                 redirect = self.success_url
@@ -553,13 +554,14 @@ class PoolDetailView(tables.MultiTableView, ListenerTableDataSourceMixin):
     def get_projectmembertable_data(self):
         rv = []
         try:
+
             pool_id = self.kwargs['id']
             pool = self.get_initial()
             members = pool.get("members", []) or []
             member_ids = map(lambda x: str(x.get("id")), members)
 
             if len(member_ids) > 0:
-                members = map(lambda x: lbaasv2_api.member_get(self.request, x, pool_id),
+                members = map(lambda x: lbaasv2_api.member_get(self.request, pool_id, x),
                               member_ids)
                 # members = map(lambda x: self.set_pool_on_member(x, pool_id), members)
                 rv = members

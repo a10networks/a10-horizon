@@ -28,6 +28,20 @@ def switchable_field(slug):
     }
 
 
+def switched_field(switch_slug, switch_dict={}):
+    rv = {
+        "class": "switched",
+        "data-switch-on": switch_slug
+    }
+
+    data_fmt = "data-{0}-{1}".format(switch_slug, "{0}")
+
+    for k,v in switch_dict.iteritems():
+        rv[data_fmt.format(k)] = v
+
+    return rv
+
+
 def readonly(obj=None):
     # if object specified, make it read only
     rv = {"readonly": "readonly" }
@@ -37,3 +51,13 @@ def readonly(obj=None):
     else:
     # return the readonly json attribute
         return rv
+
+def textarea_size(rows=10, cols=25):
+    """
+        Returns default style attributes for text inputs
+        Makes code cleaner by not having these littered everywhere
+    """
+    return {
+        "cols": cols,
+        "rows": rows
+    }

@@ -101,7 +101,7 @@ class UpdatePolicyView(forms.views.ModalFormView):
     form_class = project_forms.UpdatePolicy
     context_object_name = "scaling_policy"
     success_url = reverse_lazy(URL_PREFIX + "index")
-    template_name = "update.html"
+    template_name = "slb/update.html"
     page_title = "Update Scaling Policy"
 
     def get_context_data(self, **kwargs):
@@ -129,7 +129,7 @@ class UpdatePolicyView(forms.views.ModalFormView):
 class PolicyDetailView(tables.MultiTableView):
     name = _("Update Policy Reactions")
     table_classes = (project_tables.UpdatePolicyReactionTable,)
-    template_name = "detail.html"
+    template_name = "slb/detail.html"
     page_title = "Scaling Policy {{ scaling_policy.name }}"
     failure_url = URL_PREFIX + "index"
 
@@ -195,7 +195,7 @@ class UpdateAlarmView(forms.views.ModalFormView):
     form_class = project_forms.UpdateAlarm
     context_object_name = "scaling_alarm"
     success_url = reverse_lazy(URL_PREFIX + "index")
-    template_name = "alarm/update.html"
+    template_name = "slb/alarm/update.html"
     page_title = "Update Alarm"
 
     def get_context_data(self, **kwargs):
@@ -257,7 +257,7 @@ class AddReactionView(workflows.WorkflowView):
     name = _("Create Reaction")
     workflow_class = project_workflows.AddReactionWorkflow
     success_url = reverse_lazy(URL_PREFIX + "index")
-    template_name = "reaction/create.html"
+    template_name = "slb/reaction/create.html"
 
     def get_context_data(self, **kwargs):
         return super(AddReactionView, self).get_context_data(**kwargs)
@@ -274,7 +274,7 @@ class AddReactionView(workflows.WorkflowView):
 class GroupDetailView(tables.MultiTableView):
     name = _("Scaling Group Overview")
     table_classes = (project_tables.A10ScalingGroupMemberTable,)
-    template_name = "group/detail.html"
+    template_name = "slb/group/detail.html"
     page_title = "Scaling Group {{ scaling_group.name }}"
     failure_url = URL_PREFIX + "index"
 

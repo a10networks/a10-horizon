@@ -21,7 +21,6 @@ from horizon import exceptions
 from horizon import forms
 from horizon import messages
 
-# from openstack_dashboard import api
 from a10_horizon.dashboard.api import scaling as api
 from a10_openstack_lib.resources import a10_scaling_group as scaling_resources
 
@@ -56,7 +55,6 @@ class UpdatePolicy(forms.SelfHandlingForm):
 
     failure_url = "horizon:project:a10scaling:index"
     success_url = "horizon:project:a10scaling:index"
-    # redirect_url = reverse_lazy('horizon:project:a10scaling:updatescalingpolicy')
 
     def handle(self, request, context):
         try:

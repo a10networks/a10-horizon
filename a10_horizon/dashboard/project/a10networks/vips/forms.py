@@ -177,30 +177,33 @@ class UpdateMemberForm(forms.SelfHandlingForm):
     id = forms.CharField(label=_("ID"), widget=forms.HiddenInput(ui_helpers.readonly()))
     pool_id = forms.CharField(label=_("ID"),
                               widget=forms.HiddenInput(attrs=ui_helpers.readonly()))
+    name = forms.CharField(label=_("Name"))
     weight = forms.IntegerField(label=_("Weight"))
+
     admin_state_up = forms.BooleanField(label=_("Admin State"), required=False, initial=True)
 
     failure_url = "horizon:project:a10vips:index"
-    success_url = "horizon:project:a10vips:index"
+    # success_url = "horizon:project:a10vips:index"
 
     def __init__(self, request, *args, **kwargs):
         super(UpdateMemberForm, self).__init__(request, *args, **kwargs)
 
     def handle(self, request, context):
         try:
-            pool_id = context["pool"]
-            del context["id"]
-            del context["pool_id"]
+            pool_id = context.pop("pool_id")
+            member_id = context.pop("id")
+            self.success_url = reverse_lazy("horizon:project:a10vips:pooldetail", kwargs={"id":pool_id})
+            self.failure_url = self.success_url
 
             body = self.body_from_context(context)
-            member = lbaasv2_api.member_update(request, pool_id, **body)
+            member = lbaasv2_api.member_update(request, pool_id, member_id, **body)
             msg = _("Member {0} was successfully updated").format(context["name"])
             messages.success(request, msg)
             return member
         except Exception as ex:
             msg = _("Failed to update Member %s") % context["name"]
             LOG.exception(ex)
-            redirect = reverse_lazy(self.failure_url)
+            redirect = self.failure_url
             exceptions.handle(request, msg, redirect=redirect)
 
     def body_from_context(self, context):

@@ -71,11 +71,13 @@ def get_member_body(context, pool_id):
     or_default = lambda k: context.get(k, MEMBER_DEFAULTS.get(k))
 
     return {"member": {
+        "name": context.get("name"),
         "weight": context.get("weight"),
         "address": context.get("member_address"),
         "protocol_port": context.get("member_protocol_port"),
         "subnet_id": context.get("member_subnet_id"),
-        "admin_state_up": or_default("admin_state_up")
+        "admin_state_up": or_default("admin_state_up"),
+        "pool_id": context.get("pool_id")
     }}
 
 

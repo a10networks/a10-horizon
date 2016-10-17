@@ -64,3 +64,8 @@ def links_from_hm_pools(datum):
 def display_health_monitor(datum):
     rv = datum.get("healthmonitor_id")
     return str(rv)
+
+
+def member_count(datum):
+    count = len(datum.get("members", []))
+    return count
