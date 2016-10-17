@@ -88,6 +88,7 @@ class PoolTableBase(tables.DataTable):
                                       verbose_name=_("Health Monitor"),
                                       link=links.link_hm_detail_from_pool)
     member_count = tables.Column(display_transform.member_count, verbose_name=_("# of Members"))
+    member_summary = tables.Column(display_transform.member_links, verbose_name=_("Members"))
 
     def get_object_id(self, datum):
         return datum.get("id")
@@ -154,7 +155,8 @@ class CertificateTableBase(tables.DataTable):
     description = tables.Column("description", verbose_name=_("Description"))
     cert_data = tables.Column("cert_data", verbose_name=_("Certificate Data"), hidden=True)
     key_data = tables.Column("key_data", verbose_name=_("Key Data"), hidden=True)
-    intermediate_data = tables.Column("intermediate_data", verbose_name=_("Intermediate Data"), hidden=True)
+    intermediate_data = tables.Column(
+        "intermediate_data", verbose_name=_("Intermediate Data"), hidden=True)
 
     def get_object_id(self, datum):
         return datum.get("id")

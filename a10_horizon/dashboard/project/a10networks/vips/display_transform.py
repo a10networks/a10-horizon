@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from django.core.urlresolvers import reverse_lazy
 
 import logging
 
@@ -69,3 +70,20 @@ def display_health_monitor(datum):
 def member_count(datum):
     count = len(datum.get("members", []))
     return count
+
+
+def member_links(datum):
+    pool_id = datum.get("id")
+    ids_names = [(x["id"], x["id"]) for x in datum.get("members", [{}])]
+    link_fmt = '<a href="{0}">{1}</a><br/>'
+    rv = ""
+
+    for idname in ids_names:
+        _id = idname[0]
+        _name = idname[1]
+        url = reverse_lazy("horizon:project:a10vips:memberdetail", kwargs={"id": _id,
+                                                                           "pool_id": pool_id})
+        link = link_fmt.format(url, _name)
+        rv += link + "\r\n"
+
+    return rv
