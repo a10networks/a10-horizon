@@ -103,6 +103,7 @@ class UpdatePolicyView(forms.views.ModalFormView):
     success_url = reverse_lazy(URL_PREFIX + "index")
     template_name = "slb/update.html"
     page_title = "Update Scaling Policy"
+    modal_header = _("Update Scaling Policy")
 
     def get_context_data(self, **kwargs):
         context = super(UpdatePolicyView, self).get_context_data(**kwargs)
@@ -197,6 +198,7 @@ class UpdateAlarmView(forms.views.ModalFormView):
     success_url = reverse_lazy(URL_PREFIX + "index")
     template_name = "slb/alarm/update.html"
     page_title = "Update Alarm"
+    modal_header = _("Update Alarm")
 
     def get_context_data(self, **kwargs):
         context = super(UpdateAlarmView, self).get_context_data(**kwargs)
@@ -231,6 +233,7 @@ class UpdateActionView(forms.views.ModalFormView):
     context_object_name = "scaling_action"
     success_url = reverse_lazy(URL_PREFIX + "index")
     template_name = "slb/action/update.html"
+    modal_header = _("Update Action")
 
     def get_context_data(self, **kwargs):
         context = super(UpdateActionView, self).get_context_data(**kwargs)
