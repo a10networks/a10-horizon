@@ -77,7 +77,7 @@ def get_member_body(context, pool_id):
         "protocol_port": context.get("member_protocol_port"),
         "subnet_id": context.get("member_subnet_id"),
         "admin_state_up": or_default("admin_state_up"),
-        "pool_id": context.get("pool_id")
+        # "pool_id": context.get("pool_id")
     }}
 
 
@@ -115,7 +115,7 @@ def populate_session_persistence_from_context(context, pool):
 def get_listener_name_from_context(context):
     return context.get("listener_name",
                        str("{0}_{1}".format(context.get("protocol"),
-                        context.get("protocol_port"))))
+                                            context.get("protocol_port"))))
 
 
 def get_pool_name_from_context(context):

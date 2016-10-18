@@ -526,6 +526,38 @@ class PoolDetailView(tables.MultiTableView, ListenerTableDataSourceMixin):
     tab_group_class = p_tabs.PoolDetailsTabs
     table_classes = (p_tables.ProjectMemberTable, base_table.ListenerTableBase,)
 
+    delete_actions = {
+        "member": {
+            ACTION: lbaasv2_api.member_delete,
+            NOUN: "Member",
+            PLURAL: "Members",
+        }
+    }
+
+    def post(self, request, *args, **kwargs):
+        obj_ids = request.POST.getlist('object_ids')
+        action = request.POST['action']
+        m = re.search('.delete([a-z]+)', action).group(1)
+        pool_id = kwargs.get("id")
+
+        if obj_ids == []:
+            obj_ids.append(re.search('([0-9a-z-]+)$', action).group(1))
+
+        if m in self.delete_actions:
+            delete_action = self.delete_actions[m]
+            for obj_id in obj_ids:
+                success_msg = "Deleted {0} {1}".format(delete_action[NOUN], obj_id)
+                failure_msg = "Unable to delete {0} {1}".format(delete_action[NOUN], obj_id)
+
+                try:
+                    delete_action[ACTION](request, obj_id, pool_id)
+                    messages.success(request, success_msg)
+                except Exception as ex:
+                    exceptions.handle(request, failure_msg)
+                    LOG.exception(ex)
+
+        return self.get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super(PoolDetailView, self).get_context_data(**kwargs)
         context[self.context_object_name] = self.get_initial()
@@ -540,8 +572,7 @@ class PoolDetailView(tables.MultiTableView, ListenerTableDataSourceMixin):
     def _get_object(self, *args, **kwargs):
         rv = {}
         pool_id = self.kwargs['id']
-        # self.submit_url = reverse_lazy(URL_PREFIX + "edit",
-        #                                kwargs={"id": id})
+        self.submit_url = self.success_url
         if pool_id:
             try:
                 rv = lbaasv2_api.pool_get(self.request, pool_id)

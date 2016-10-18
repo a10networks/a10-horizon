@@ -230,7 +230,6 @@ class CreateCertificateAction(workflows.Action):
             self.fields["key_data"].initial = KEY_DATA
             self.fields["password"].initial = ""
 
-
     """
         Specify an existing certificate or create a new one.
     """
@@ -539,7 +538,7 @@ class CreateMemberWorkflow(workflows.Workflow):
     success_url = reverse_lazy(SUCCESS_URL)
     # success_url = SUCCESS_URL
     # redirect_url = "horizon:project:a10scaling:index"
-    # detail_url = "horizon:project:a10vips:pooldetail"
+    detail_url = "horizon:project:a10vips:pooldetail"
     finalize_button_name = "Create Member"
     success_message = _("Added Member")
     failure_message = _("Failed to add member")
