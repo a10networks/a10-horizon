@@ -43,20 +43,14 @@ class TestApiHelpers(unittest2.TestCase):
         self.neutronclient_mock = mock.MagicMock()
 
         mock_modules = {
-            "horizon": mock.MagicMock(),
-            "horizon.messages": mock.MagicMock(),
             "horizon.utils": mock.MagicMock(),
             "horizon.utils.memoized": mock.MagicMock(),
-            # "neutron_lbaas_dashboard.api.lbaasv2": self.lbaasv2_mock,
-            # "openstack_dashboard": mock.MagicMock(),
-            # "openstack_dashboard.api.neutron": self.neutronapi_mock,
-            # "openstack_dashboard.api.neutron_api": self.neutronapi_mock,
+            # mock.MagicMock(memoized=lambda x, *args, **kwargs: x(*args, **kwargs)),
             "glanceclient.v2.client": mock.MagicMock(),
             "openstack_dashboard.api.glance.glanceclient": mock.MagicMock(),
             "neutronclient.v2_0": mock.MagicMock(),
             "openstack_dashboard.api.neutron.neutronclient": mock.MagicMock(
                 return_value=self.neutronclient_mock),
-            "django.utils.functional.__mod__": lambda lhs, **rhs: lhs.format(rhs),
             "django.utils.functional.__mod__": lambda lhs, **rhs: lhs.format(rhs),
             "django.utils.translation.ugettext_lazy": mock.MagicMock(return_value=lambda **x: x)
         }
@@ -73,6 +67,6 @@ class TestApiHelpers(unittest2.TestCase):
     def test_loadbalancer_field_data_results(self):
         expected = [self._get_lb(), self._get_lb()]
         self.lbaasv2_mock.list_loadbalancers = mock.MagicMock(
-            side_effect=lambda: expected)
-        actual = self.target.loadbalancer_field_data(self.request, {})
-        self.assertEqual(len(expected), len(actual))
+            return_value=[self._get_lb(), self._get_lb()])
+        actual = self.target._loadbalancer_field_data(self.request)
+        self.assertEqual(expected, actual)

@@ -22,11 +22,11 @@ import unittest2
 # import these before the whole module gets imported.
 # this lets us use classes for the tests
 # while mocking dependencies.
-from a10_horizon.dashboard.api.lbaasv2 import LoadBalancer
-from a10_horizon.dashboard.api.lbaasv2 import Listener
-from a10_horizon.dashboard.api.lbaasv2 import Member
-from a10_horizon.dashboard.api.lbaasv2 import Pool
-from a10_horizon.dashboard.api.lbaasv2 import HealthMonitor
+# from a10_horizon.dashboard.api.lbaasv2 import LoadBalancer
+# from a10_horizon.dashboard.api.lbaasv2 import Listener
+# from a10_horizon.dashboard.api.lbaasv2 import Member
+# from a10_horizon.dashboard.api.lbaasv2 import Pool
+# from a10_horizon.dashboard.api.lbaasv2 import HealthMonitor
 
 
 SUBNET_ID = "subnet01"
@@ -242,7 +242,7 @@ class TestLbaasV2API(TestBase):
     def setUp(self):
         self._init_mocks()
         from a10_horizon.dashboard.api import lbaasv2
-        from openstack_dashboard import api
+        # from openstack_dashboard import api
         lbaasv2.neutronclient = self.neutronclient_mock
         self.request = self._get_request()
 
@@ -258,11 +258,14 @@ class TestLbaasV2API(TestBase):
 
         mock_modules = {
             "glanceclient.v2.client": mock.MagicMock(),
-            "horizon": mock.MagicMock(),
+            # "horizon": mock.MagicMock(),
+            # "openstack_dashboard.api.base": mock.MagicMock(),
+            "horizon.utils.escape": mock.MagicMock(),
             "openstack_dashboard.api.glance.glanceclient": mock.MagicMock(),
             "neutronclient.v2_0": mock.MagicMock(),
             "openstack_dashboard.api.neutron.neutronclient": mock.MagicMock(
                 return_value=self.neutronclient_mock),
+            "django.utils.html.escape": mock.MagicMock(),
             "django.utils.functional.__mod__": lambda lhs, **rhs: lhs.format(rhs),
             "django.utils.translation.ugettext_lazy": mock.MagicMock(return_value=lambda **x: x)
         }
@@ -480,7 +483,7 @@ class TestLbaasV2API(TestBase):
         actual = self.target.member_get(self.request, POOL_ID, MEMBER_ID)
         get_call = self.neutronclient_mock.return_value.show_lbaas_member
         self.assertTrue(get_call.called)
-        get_call.assert_called_with(POOL_ID, MEMBER_ID)
+        get_call.assert_called_with(MEMBER_ID, POOL_ID)
 
     def test_list_members(self):
         expected = [self._get_member()]
@@ -496,7 +499,7 @@ class TestLbaasV2API(TestBase):
         actual = self.target.member_update(self.request, POOL_ID, MEMBER_ID, **expected)
         update_call = self.neutronclient_mock.return_value.update_lbaas_member
         self.assertTrue(update_call.called)
-        update_call.assert_called_with(POOL_ID, MEMBER_ID, expected)
+        update_call.assert_called_with(MEMBER_ID, POOL_ID, expected)
 
     def test_delete_member(self):
         self.target.member_delete(self.request, MEMBER_ID, POOL_ID)

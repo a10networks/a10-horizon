@@ -451,7 +451,7 @@ def member_list(request, pool_id, **kwargs):
 
 
 def _member_list(request, pool_id, **kwargs):
-    members = neutronclient(requargsest).list_lbaas_members(pool_id, **kwargs).get('members')
+    members = neutronclient(request).list_lbaas_members(pool_id, **kwargs).get('members')
     return [m for m in members]
 
 

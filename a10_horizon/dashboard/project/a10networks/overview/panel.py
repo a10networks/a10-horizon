@@ -26,3 +26,7 @@ class A10OverviewPanel(NeutronExtensionPanelBase):
     name = _("SLB Overview")
     slug = "a10overview"
     permissions = ("openstack.services.network", )
+
+    @staticmethod
+    def can_register(self):
+        return False

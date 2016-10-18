@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 #     LOG.exception(ex)
 #     LOG.warning("Could not import lbaasv2 dashboard API")
 
-from openstack_dashboard.api import neutron as neutron_api
+import openstack_dashboard.api.neutron as neutron_api
 from a10_horizon.dashboard.api import lbaasv2
 from a10_horizon.dashboard.api import certificates as certificate_api
 
@@ -39,11 +39,15 @@ from a10_horizon.dashboard.api import certificates as certificate_api
 DEFAULT_FILTER = lambda x: True
 
 
-@memoized.memoized_method
-def loadbalancer_field_data(request, **kwargs):
+def _loadbalancer_field_data(request, **kwargs):
     return [(x.get("id"),
              "{0} - {1}".format(x.get("name"), x.get("vip_address")))
             for x in lbaasv2.list_loadbalancers(request, **kwargs)]
+
+
+@memoized.memoized_method
+def loadbalancer_field_data(request, **kwargs):
+    return _loadbalancer_field_data(request, **kwargs)
 
 
 @memoized.memoized_method
