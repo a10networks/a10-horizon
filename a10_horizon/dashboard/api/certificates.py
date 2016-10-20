@@ -1,110 +1,85 @@
-# Copyright (C) 2015 A10 Networks Inc. All rights reserved.
+# Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
 
 from __future__ import absolute_import
 
+# from django.utils.datastructures import SortedDict
+# from django.utils.translation import ugettext_lazy as _
 import logging
+from horizon import messages
 
-from django.conf import settings
-
-from horizon.utils.memoized import memoized  # noqa
-
-from openstack_dashboard.api import base
-
-from openstack_dashboard.api.neutron import NeutronAPIDictWrapper
-# a10 client that extends neutronclient.v2_0.client.Client
-from a10_openstack.neutron_ext.api import client as neutron_client
+from openstack_dashboard.api import neutron
 
 LOG = logging.getLogger(__name__)
+neutronclient = neutron.neutronclient
+
+CERT_ATTRIBUTE = "a10_certificate"
+CERT_PLURAL = CERT_ATTRIBUTE + "%s" % "s"
 
 
-class Certificate(NeutronAPIDictWrapper):
-    """Wrapper for neutron Certificates"""
-    def __init__(self, apiresource):
-        super(Certificate, self).__init__(apiresource)
+def list_certificates(request, **kwargs):
+    # TODO(mdurrant) Fix this terribadness.
+    # 1. kwargs={} should result IN THE SAME RETURN TYPE
+    # 2. kwargs=WhoKnows ...?
+    # 3. kwargs=None ... ?
+    # Return types as follows
+    # 1. Return type: An iterator
+    # 2. Return type: A listerator? Good question.
+    # 3. Return type: Always a list.
+
+    rv = list(neutronclient(request).list_a10_certificates(kwargs))[0]
+    return rv.get("a10_certificates", [])
 
 
-class CertificateBinding(NeutronAPIDictWrapper):
-    """Wrapper for neutron CertificateBindings"""
-    def __init__(self, apiresource):
-        super(CertificateBinding, self).__init__(apiresource)
+def get_certificate(request, id, **kwargs):
+    rv = neutronclient(request).show_a10_certificate(id, **kwargs)
+    return rv.get("a10_certificate", {})
 
 
-def neutronclient(request):
-    insecure = getattr(settings, 'OPENSTACK_SSL_NO_VERIFY', False)
-    cacert = getattr(settings, 'OPENSTACK_SSL_CACERT', None)
-    LOG.debug('neutronclient connection created using token "%s" and url "%s"'
-              % (request.user.token.id, base.url_for(request, 'network')))
-    LOG.debug('user_id=%(user)s, tenant_id=%(tenant)s' %
-              {'user': request.user.id, 'tenant': request.user.tenant_id})
-    c = neutron_client.Client(token=request.user.token.id,
-                              auth_url=base.url_for(request, 'identity'),
-                              endpoint_url=base.url_for(request, 'network'),
-                              insecure=insecure,
-                              ca_cert=cacert)
-    return c
+def create_certificate(request, certificate):
+    rv = neutronclient(request).create_a10_certificate(certificate).get("a10_certificate", {})
+    return rv
 
 
-def certificate_list(request, **params):
-    LOG.debug("certificates_list(): params=%s" % (params))
-    certificates = []
-    certificates = neutronclient(request).list_certificates(**params).get('certificates')
-    return map(Certificate, certificates)
+def delete_certificate(request, id):
+    neutronclient(request).delete_a10_certificate(id)
 
 
-def certificate_get(request, certificate_id, **params):
-    # TODO(mdurrant): Add option to get bindings w/ cert.
-    LOG.debug("certificate_get(): certificate_id=%s, params=%s" % (certificate_id, params))
-    certificate = neutronclient(request).show_certificate(certificate_id,
-                                                          **params).get('certificate')
-    return Certificate(certificate)
+def update_certificate(request, id, **kwargs):
+    body = {"a10_certificate": kwargs}
+    rv = neutronclient(request).update_a10_certificate(id, body).get("a10_certificate", {})
+    return rv
 
 
-def certificate_create(request, **kwargs):
-    """Create specified Certificate"""
-    body = {"certificate": kwargs}
-    LOG.debug("certificate_create(): kwargs=%s,body=%s" % (kwargs, body))
-    certificate = neutronclient(request).create_certificate(body=body).get('certificate')
-    return Certificate(certificate)
+def create_binding(request, listener_id, cert_id):
+    body = {"a10_certificate_binding": {
+        "listener_id": listener_id,
+        "certificate_id": cert_id
+    }}
+    rv = neutronclient(request).create_a10_certificate_binding(
+        body).get("a10_certificate_binding", {})
+    return rv
 
 
-def certificate_update(request, **kwargs):
-    body = {"certificate": kwargs}
-    LOG.debug("certificate_update(): kwargs=%s", (kwargs))
-    certificate = neutronclient(request).update_certificate(body=body).get('certificate')
-    return Certificate(certificate)
+def get_binding(request, id):
+    return neutronclient(request).get_a10_certificate_binding(id)
 
 
-def certificate_delete(request, certificate_id):
-    LOG.debug("certificate_delete(): certificiate_id:%s" % certificate_id)
-    # TODO(mmd): Should this return status or do we assume it always works?
-    neutronclient(request).delete_certificate(certificate_id)
+def delete_binding(request, id):
+    return neutronclient(request).delete_a10_certificate_binding(id)
 
 
-def certificate_bindings_list(request, **params):
-    LOG.debug("certificate_bindings_list(): params={}".format(params))
-
-    bindings = \
-        neutronclient(request).list_certificate_bindings(**params).get('certificate_bindings')
-    return map(CertificateBinding, bindings)
-
-
-def certificate_binding_get(request, binding_id, **params):
-    LOG.debug("certificate_binding_get(): binding_id=%s, params=%s" % (binding_id, params))
-    binding = neutronclient(request).show_certificate_binding(binding_id,
-                                                              **params).get('certificate_binding')
-    return CertificateBinding(binding)
-
-
-def certificate_binding_create(request, **kwargs):
-    """Binding specified Certificate ID to specified VIP ID"""
-    LOG.debug("certificate_binding_create(): request=%s, kwargs=%s" % (request, kwargs))
-    body = {'certificate_binding': kwargs}
-
-    binding = \
-        neutronclient(request).create_certificate_binding(body=body).get('certificate_binding')
-    return CertificateBinding(binding)
-
-
-def certificate_binding_delete(request, binding_id):
-    LOG.debug("certificate_binding_delete(): binding_id=%s" % binding_id)
-    neutronclient(request).delete_certificate_binding(binding_id)
+def get_bindings_for_certificate(request, certificate_id):
+    return neutronclient(request).list_a10_certificate_bindings(filter={
+        "certificate_id=": certificate_id})

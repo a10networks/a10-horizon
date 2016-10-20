@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+  {{ page_title }}
+{% endblock %}
+
+{% block main %}
+  {% include "logo.html" with logotitle="Load Balancer Device Instances"%}
+  <div class="row">
+    <div class="col-sm-12">
+      {{ tab_group.render }}
+    </div>
+  </div>
+{% endblock %}

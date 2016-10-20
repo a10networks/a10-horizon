@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Member Details" %}{% endblock %}
+
+{% block main %}
+<div class="row">
+  <div class="col-sm-12">
+    <h3>Member Data</h3>
+    {% include 'lb/members/_detail.html' %}
+    <hr />
+  </div>
+  <div class="col-sm-12">
+    {% include 'lb/members/_pool_detail.html' %}
+    <hr />
+  </div>
+</div>
+  
+{% endblock %}

@@ -16,7 +16,7 @@ from __future__ import absolute_import
 import logging
 from openstack_dashboard.api import neutron
 
-from a10_neutronclient.resources import a10_scaling_group
+from a10_openstack_lib.resources import a10_scaling_group
 
 neutronclient = neutron.neutronclient
 NeutronAPIDictWrapper = neutron.NeutronAPIDictWrapper
@@ -27,36 +27,42 @@ LOG = logging.getLogger(__name__)
 
 class A10ScalingGroup(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingGroup, self).__init__(apiresource)
 
 
 class A10ScalingGroupMember(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group_member dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingGroupMember, self).__init__(apiresource)
 
 
 class A10ScalingPolicy(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingPolicy, self).__init__(apiresource)
 
 
 class A10ScalingPolicyReaction(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingPolicyReaction, self).__init__(apiresource)
 
 
 class A10ScalingAction(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingAction, self).__init__(apiresource)
 
 
 class A10ScalingAlarm(NeutronAPIDictWrapper):
     """Wrapper for a10_scaling_group dictionary"""
+
     def __init__(self, apiresource):
         super(A10ScalingAlarm, self).__init__(apiresource)
 

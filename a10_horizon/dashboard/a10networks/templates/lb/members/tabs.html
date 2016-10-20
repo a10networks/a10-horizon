@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+  {{ page_title }}
+{% endblock %}
+
+{% block page_header %}
+  <div class='page-header'>
+  </div>
+{% endblock %}
+
+{% block main %}
+  {% include "logo.html" with logotitle="Members"%}
+  <div class="row">
+    <div class="col-sm-12">
+      {{ tab_group.render }}
+    </div>
+  </div>
+{% endblock %}

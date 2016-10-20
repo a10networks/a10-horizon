@@ -1,0 +1,22 @@
+{% load i18n sizeformat parse_date %}
+
+<h3>Pool Data</h3>
+<div class="info row detail">
+  <dl class="dl-horizontal">
+    <dt>{% trans "ID" %}</dt>
+    <dd>{{ pool.id }}</dd>
+
+    <dt>{% trans "Name" %}</dt>
+    <dd>
+        <a href="{% url 'horizon:project:a10vips:pooldetail' pool_id=pool.id %}">
+            {{ pool.name }}
+        </a>
+    </dd>
+
+    <dt>{% trans "Protocol" %}</dt>
+    <dd>{{ pool.protocol }}</dd>
+
+    <dt>{% trans "Admin State Up" %}</dt>
+    <dd>{{ pool.admin_state_up|yesno|capfirst }}</dd>
+  </dl>
+</div>

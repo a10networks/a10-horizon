@@ -1,0 +1,92 @@
+# Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+import logging
+
+from django.core.urlresolvers import reverse_lazy
+from django.utils.translation import ugettext_lazy as _
+from horizon import tables
+
+LOG = logging.getLogger(__name__)
+
+
+class AddCertificateLink(tables.LinkAction):
+    name = "addcertificate"
+    verbose_name = _("Add Certificate")
+    url = "horizon:project:a10ssl:addcertificate"
+    classes = ("ajax-modal",)
+    icon = "plus"
+    policy_rules = (("network", "create_certificate"),)  # FIXME(traff)
+
+
+class DeleteCertificateLink(tables.DeleteAction):
+    name = "deletecertificate"
+    action_present = _("Delete")
+    action_past = _("Scheduled deletion of %(data_type)s")
+    data_type_singular = _("Certificate")
+    data_type_plural = _("Certificates")
+
+
+class DeleteCertificateBindingLink(tables.DeleteAction):
+    name = "deletecertificatebinding"
+    action_present = _("Delete")
+    action_past = _("Scheduled deletion of %(data_type)s")
+    data_type_singular = _("Certificate Association")
+    data_type_plural = _("Certificate Associations")
+
+
+class AddCertificateBindingLink(tables.LinkAction):
+    name = "addcertificatebinding"
+    verbose_name = _("Add Certificate Association")
+    url = "horizon:project:a10ssl:addcertificatebinding"
+    classes = ("ajax-modal",)
+    icon = "plus"
+    policy_rules = (("network", "create_certificate_binding"),)  # FIXME(traff)
+
+
+class UpdateCertificateLink(tables.LinkAction):
+    name = "updatecertificate"
+    verbose_name = _("Edit Certificate")
+    classes = ("ajax-modal", "btn-update",)
+
+    def get_link_url(self, certificate):
+        base_url = reverse_lazy("horizon:project:a10ssl:updatecertificate",
+                                kwargs={'certificate_id': certificate.id})
+        return base_url
+
+
+class CertificatesTable(tables.DataTable):
+    id = tables.Column("id", verbose_name=_("ID"), hidden=True)
+    name = tables.Column("name", verbose_name=_("Name"))
+    description = tables.Column("description", verbose_name=_("Description"))
+
+    class Meta(object):
+        name = "certificatestable"
+        verbose_name = _("Certificates")
+        table_actions = (AddCertificateLink, DeleteCertificateLink)
+        row_actions = (UpdateCertificateLink, )
+
+
+class CertificateBindingsTable(tables.DataTable):
+    id = tables.Column("id", verbose_name=_("ID"), hidden=True)
+    vip_id = tables.Column("vip_id", verbose_name=_("VIP ID"), hidden=True)
+    certificate_id = tables.Column("certificate_id", verbose_name=_("Certificate ID"), hidden=True)
+    vip_name = tables.Column("vip_name", verbose_name=_("VIP"))
+    certificate_name = tables.Column("certificate_name", verbose_name=_("Certificate"))
+
+    class Meta(object):
+        name = "certificatebindingtable"
+        verbose_name = _("Certificate Associations")
+        table_actions = (AddCertificateBindingLink, DeleteCertificateBindingLink)
+        row_actions = ()

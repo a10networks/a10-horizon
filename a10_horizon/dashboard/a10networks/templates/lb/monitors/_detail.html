@@ -1,0 +1,35 @@
+<!-- Copyright (C) 2014-2016, A10 Networks Inc. All rights reserved. -->
+
+{% load i18n sizeformat parse_date %}
+
+<div class="info row detail">
+  <dl class="dl-horizontal">
+    <dt>{% trans "ID" %}</dt>
+    <dd>{{ healthmonitor.id }}</dd>
+
+    <dt>{% trans "Name" %}</dt>
+    <dd>{{ healthmonitor.name }}</dd>
+
+    <dt>{% trans "Project ID" %}</dt>
+    <dd>{{ healthmonitor.tenant_id }}</dd>
+
+    <dt>{% trans "Monitor Type" %}</dt>
+    <dd>{{ healthmonitor.type }}</dd>
+
+    <dt>{% trans "Delay (seconds)" %}</dt>
+    <dd>{{ healthmonitor.delay }}</dd>
+
+    <dt>{% trans "Timeout (seconds)" %}</dt>
+    <dd>{{ healthmonitor.timeout }}</dd>
+
+    <dt>{% trans "Max Retries" %}</dt>
+    <dd>{{ healthmonitor.max_retries }}</dd>
+    {% if 'HTTP' in healthmonitor.type %}
+    <dt>{% trans "HTTP Method" %}</dt>
+    <dd>{{ healthmonitor.http_method }}</dd>
+
+    <dt>{% trans "URL Path" %}</dt>
+    <dd>{{ healthmonitor.url_path }}</dd>
+    {% endif %}
+  </dl>
+</div>
