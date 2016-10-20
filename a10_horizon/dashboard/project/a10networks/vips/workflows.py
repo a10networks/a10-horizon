@@ -239,12 +239,12 @@ class CreateCertificateAction(workflows.Action):
     cert_name = forms.CharField(label=_("Name"),
                                 help_text="Specify a name for the certificate data",
                                 widget=forms.Textarea(attrs=ui_helpers.textarea_size(rows=1)))
+    description = forms.CharField(label=_("Description"), required=False,
+                                  widget=forms.Textarea(attrs=ui_helpers.textarea_size(rows=1)))
     cert_data = forms.CharField(label=_("Certificate Data"), required=False,
                                 widget=forms.Textarea(
                                     attrs=ui_helpers.textarea_size()),
                                 min_length=1, max_length=8000)
-    description = forms.CharField(label=_("Description"), required=False,
-                                  widget=forms.Textarea(attrs=ui_helpers.textarea_size(rows=1)))
     key_data = forms.CharField(label=_("Key Data"), required=False,
                                widget=forms.Textarea(attrs=ui_helpers.textarea_size()),
                                min_length=1, max_length=8000)
@@ -459,7 +459,7 @@ class CreateCertificateStep(workflows.Step):
 
 class SpecifyCertificateStep(workflows.Step):
     action_class = SpecifyCertificateAction
-    contributes = ("use_tls", "description", "certificate_id", "cert_data",
+    contributes = ("cert_name", "use_tls", "description", "certificate_id", "cert_data",
                    "key_data", "intermediate_data", "password")
 
 

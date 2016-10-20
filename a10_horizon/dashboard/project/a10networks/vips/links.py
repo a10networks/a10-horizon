@@ -59,3 +59,11 @@ def link_hm_detail_by_id(datum):
         return reverse_lazy(URL_PREFIX + "monitordetail", kwargs={"id": hmid})
     else:
         return None
+
+
+def link_certificate_detail_by_id(datum):
+    certid = datum.get("id", None)
+    if certid:
+        return reverse_lazy(URL_PREFIX + "certificatedetail", kwargs={"id": certid})
+    else:
+        return None

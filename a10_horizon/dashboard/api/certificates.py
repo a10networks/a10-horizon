@@ -78,3 +78,8 @@ def get_binding(request, id):
 
 def delete_binding(request, id):
     return neutronclient(request).delete_a10_certificate_binding(id)
+
+
+def get_bindings_for_certificate(request, certificate_id):
+    return neutronclient(request).list_a10_certificate_bindings(filter={
+        "certificate_id=": certificate_id})

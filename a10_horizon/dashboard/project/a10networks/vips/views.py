@@ -706,3 +706,57 @@ class LBDetailView(tables.MultiTableView, ListenerTableDataSourceMixin):
 
     def get_initial(self):
         return self._get_object()
+
+
+class CertificateDetailView(tables.MultiTableView):
+    name = _("Certificate Details")
+    context_object_name = "certificate"
+    success_url = reverse_lazy(URL_PREFIX + "index")
+    template_name = "lb/certs/detail.html"
+    page_title = name
+    tab_group_class = p_tabs.CertificateDetailTabs
+    table_classes = (base_table.CertificateBindingTableBase,)
+
+    def get_context_data(self, **kwargs):
+        context = super(CertificateDetailView, self).get_context_data(**kwargs)
+        context[self.context_object_name] = self.get_initial()
+
+        return context
+
+    # Get the pool IDs from the initial object and fetch their details
+    def get_certificatebindingtable_data(self):
+        rv = []
+        cert = self.get_initial()
+
+        try:
+            # map fails here for bizarre reasons.
+            bindings = certs_api.get_bindings_for_certificate(
+                self.request, cert["id"]).get("a10_certificate_bindings", [])
+            return bindings
+        except Exception as ex:
+
+            LOG.exception(ex)
+            exceptions.handle(self.request,
+                              _('Unable to retrieve associated Pools list.'))
+            return []
+
+    @memoized.memoized_method
+    def _get_object(self, *args, **kwargs):
+        rv = {}
+        id = self.kwargs['id']
+
+        self.submit_url = reverse_lazy(URL_PREFIX + "certificatedetail",
+                                       kwargs={"id": id})
+        if id:
+            try:
+                rv = certs_api.get_certificate(
+                    self.request, id)
+                return rv
+            except Exception as ex:
+                redirect = self.success_url
+                msg = _("Unable to retrieve Certificate: %s") % ex
+                exceptions.handle(self.request, msg, redirect=redirect)
+
+    def get_initial(self):
+        rv = self._get_object()
+        return rv

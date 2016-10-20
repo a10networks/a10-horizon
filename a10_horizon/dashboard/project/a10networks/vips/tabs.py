@@ -216,3 +216,10 @@ class LBDetailsTabs(tabs.TabGroup):
     tabs = ()
     sticky = False
     show_single_tab = True
+
+
+class CertificateDetailTabs(tabs.TabGroup):
+    slug = "a10certificatedetailtabs"
+    tabs = ()
+    stick = False
+    show_single_tab = True

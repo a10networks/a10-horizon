@@ -151,7 +151,7 @@ class LoadbalancerTableBase(tables.DataTable):
 
 class CertificateTableBase(tables.DataTable):
     id = tables.Column("id", verbose_name=_("ID"), hidden=True)
-    name = tables.Column("name", verbose_name=_("Name"))
+    name = tables.Column("name", link=links.link_certificate_detail_by_id, verbose_name=_("Name"))
     description = tables.Column("description", verbose_name=_("Description"))
     cert_data = tables.Column("cert_data", verbose_name=_("Certificate Data"), hidden=True)
     key_data = tables.Column("key_data", verbose_name=_("Key Data"), hidden=True)
@@ -164,5 +164,23 @@ class CertificateTableBase(tables.DataTable):
     class Meta(object):
         name = "certificatetable"
         verbose_name = "certificate"
+        table_action = tuple()
+        row_actions = tuple()
+
+
+class CertificateBindingTableBase(tables.DataTable):
+    id = tables.Column("id", verbose_name=_("ID"), hidden=True)
+    certificate_id = tables.Column(
+        "certificate_id", verbose_name=_("Certificate ID"), hidden=False)
+    listener_id = tables.Column("listener_id", verbose_name=_("Listener ID"), hidden=False)
+    created_at = tables.Column("created_at", hidden=True)
+    updated_at = tables.Column("updated_at", hidden=True)
+
+    def get_object_id(self, datum):
+        return datum.get("id")
+
+    class Meta(object):
+        name = "certificatebindingtable"
+        verbose_name = "certificatebindings"
         table_action = tuple()
         row_actions = tuple()
