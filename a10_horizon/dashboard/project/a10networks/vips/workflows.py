@@ -243,7 +243,7 @@ class CreateCertificateAction(workflows.Action):
                                 widget=forms.Textarea(
                                     attrs=ui_helpers.textarea_size()),
                                 min_length=1, max_length=8000)
-    description = forms.CharField(label=_("Description"),
+    description = forms.CharField(label=_("Description"), required=False,
                                   widget=forms.Textarea(attrs=ui_helpers.textarea_size(rows=1)))
     key_data = forms.CharField(label=_("Key Data"), required=False,
                                widget=forms.Textarea(attrs=ui_helpers.textarea_size()),
