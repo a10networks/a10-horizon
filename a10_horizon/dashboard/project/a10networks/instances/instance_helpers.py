@@ -15,9 +15,9 @@
 from copy import copy
 
 from openstack_dashboard.api import base
-
-from a10_neutron_lbaas.vthunder import instance_manager
-from a10_neutron_lbaas.vthunder import keystone
+from a10_horizon.dashboard.api import deviceinstances
+# from a10_neutron_lbaas.vthunder import instance_manager
+# from a10_neutron_lbaas.vthunder import keystone
 
 
 def url_for(request):

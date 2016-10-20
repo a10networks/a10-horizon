@@ -224,10 +224,12 @@ class CreateCertificateAction(workflows.Action):
     def _populate_debug_defaults(self):
         dev_debug = horizon_conf.HORIZON_CONFIG.get("debug")
 
+        from a10_horizon.tests import testdata
+
         if dev_debug:
-            self.fields["cert_name"].initial = self._random_name()
-            self.fields["cert_data"].initial = CERT_DATA
-            self.fields["key_data"].initial = KEY_DATA
+            self.fields["cert_name"].initial = testdata._random_name()
+            self.fields["cert_data"].initial = testdata.CERT_DATA
+            self.fields["key_data"].initial = testdata.KEY_DATA
             self.fields["password"].initial = ""
 
     """
@@ -241,6 +243,8 @@ class CreateCertificateAction(workflows.Action):
                                 widget=forms.Textarea(
                                     attrs=ui_helpers.textarea_size()),
                                 min_length=1, max_length=8000)
+    description = forms.CharField(label=_("Description"),
+                                  widget=forms.Textarea(attrs=ui_helpers.textarea_size(rows=1)))
     key_data = forms.CharField(label=_("Key Data"), required=False,
                                widget=forms.Textarea(attrs=ui_helpers.textarea_size()),
                                min_length=1, max_length=8000)
@@ -261,6 +265,7 @@ class CreateCertificateAction(workflows.Action):
 
 
 class SpecifyCertificateAction(workflows.Action):
+
     """
         Specify an existing certificate or create a new one.
     """
@@ -299,10 +304,15 @@ class SpecifyCertificateAction(workflows.Action):
 
     cert_name = forms.CharField(label=_("Name"),
                                 help_text="Specify a name for the certificate data",
-                                widget=forms.Textarea(attrs=hide_create_controls("Name", ui_helpers.textarea_size(rows=1))))
+                                widget=forms.Textarea(attrs=hide_create_controls(
+                                    "Name", ui_helpers.textarea_size(rows=1))))
+    description = forms.CharField(label=_("Description"), required=False,
+                                  widget=forms.Textarea(attrs=hide_create_controls(
+                                      "Description", ui_helpers.textarea_size(rows=1))))
     cert_data = forms.CharField(label=_("Certificate Data"), required=False,
                                 widget=forms.Textarea(
-                                    attrs=hide_create_controls("Certificate Data", ui_helpers.textarea_size())),
+                                    attrs=hide_create_controls(
+                                        "Certificate Data", ui_helpers.textarea_size())),
                                 min_length=1, max_length=8000)
     key_data = forms.CharField(label=_("Key Data"), required=False,
                                widget=forms.Textarea(attrs=hide_create_controls(
@@ -310,10 +320,13 @@ class SpecifyCertificateAction(workflows.Action):
                                min_length=1, max_length=8000)
     intermediate_data = forms.CharField(label=_("Intermediate Data"), required=False,
                                         widget=forms.Textarea(
-                                            attrs=hide_create_controls("Intermediate Data", ui_helpers.textarea_size())),
+                                            attrs=hide_create_controls(
+                                                "Intermediate Data", ui_helpers.textarea_size())),
                                         min_length=1, max_length=8000)
     password = forms.CharField(widget=forms.PasswordInput(
-        render_value=False, attrs=hide_create_controls("Password", ui_helpers.textarea_size(rows=1))), required=False)
+        render_value=False, attrs=hide_create_controls(
+            "Password", ui_helpers.textarea_size(rows=1))),
+        required=False)
 
     def __init__(self, request, context, *args, **kwargs):
         super(SpecifyCertificateAction, self).__init__(request, context, *args, **kwargs)
@@ -373,7 +386,8 @@ class CreateSessionPersistenceAction(workflows.Action):
     # TODO(mdurrant): Make this sucker dynamic - filter based on the protocol.
     session_persistence = forms.ChoiceField(label=_("Session Persistence"),
                                             widget=forms.Select(
-                                            attrs=ui_helpers.switchable_field("session_persistence")),
+                                            attrs=ui_helpers.switchable_field(
+                                                "session_persistence")),
                                             required=True)
     cookie_name = forms.CharField(label=_("Cookie Name"), min_length=1, max_length=255,
                                   required=False)
@@ -415,8 +429,8 @@ class CreatePoolStep(workflows.Step):
     action_class = CreatePoolAction
     # TODO(mdurrant): Support all A10 LBs.
     # the pool protocol merely acts as a constraint on persistence
-    contributes = ("pool_name", "description", "listener_id", "lb_algorithm", "pool_protocol", "session_persistence",
-                   "cookie_name")
+    contributes = ("pool_name", "description", "listener_id", "lb_algorithm", "pool_protocol",
+                   "session_persistence", "cookie_name")
 
 
 class CreateMemberStep(workflows.Step):
@@ -445,7 +459,8 @@ class CreateCertificateStep(workflows.Step):
 
 class SpecifyCertificateStep(workflows.Step):
     action_class = SpecifyCertificateAction
-    contributes = ("certificate_id", "cert_data", "key_data", "intermediate_data", "password")
+    contributes = ("use_tls", "description", "certificate_id", "cert_data",
+                   "key_data", "intermediate_data", "password")
 
 
 class CreateLoadBalancerWorkflow(workflows.Workflow):
@@ -478,18 +493,34 @@ class CreateListenerWorkflow(workflows.Workflow):
 
     def handle(self, request, context):
         try:
+            rollback = []
+
             body = from_ctx.get_listener_body_from_context(context)
             cert_body = from_ctx.get_cert_body_from_context(context)
 
-            listener = lbaasv2.create_listener(request, body)
             use_tls = context.get("use_tls", False)
             if use_tls:
                 cert = certificates.create_certificate(request, cert_body)
+                rollback.append((cert.get("id"), certificates.delete_certificate))
+
+            listener = lbaasv2.create_listener(request, body)
+            rollback.append((listener.get("id"), lbaasv2.delete_listener))
+
+            if use_tls:
                 binding = certificates.create_binding(request, listener.get("id"), cert.get("id"))
+                rollback.append((binding.get("id"), certificates.delete_binding))
             return True
         except Exception as ex:
             LOG.exception(ex)
             exceptions.handle(request, _("Could not create Listener"))
+            for rb in rollback:
+                f = rb[1]
+                v = rb[0]
+
+                try:
+                    f(request, v)
+                except Exception as ex:
+                    LOG.exception(ex)
 
 
 class CreatePoolWorkflow(workflows.Workflow):
@@ -656,4 +687,4 @@ class CreateVipWorkflow(workflows.Workflow):
                 except Exception as ex:
                     LOG.exception(ex)
                     exceptions.handle(request, _("Could not delete {} {}") % (obj_type, obj_id))
-        return success
+        return successs
